@@ -85,10 +85,10 @@
         }
 
         /* 模式选择问题文本 */
-        .mode-question {
+        .question-left {
             position: fixed;
             bottom: 280px;
-            left: 50%;
+            left: calc(50% - 120px);
             transform: translateX(-50%);
             color: #333;
             font-size: 18px;
@@ -98,16 +98,17 @@
             text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
         }
 
-        .question-left {
-            position: flex;
-            right: 60px;
-            top: 0;
-        }
-
         .question-right {
-            position: flex;
-            left: 60px;
-            top: 0;
+            position: fixed;
+            bottom: 280px;
+            right: calc(50% - 120px);
+            transform: translateX(50%);
+            color: #333;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            z-index: 1001;
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
         }
 
         /* 探索模式按钮 - 重新设计 */
@@ -1269,10 +1270,8 @@
     </div>
 
     <!-- 模式选择问题文本 -->
-    <div class="mode-question">
-        <div class="question-left">有明确的地方？</div>
-        <div class="question-right">就随意走走？</div>
-    </div>
+    <div class="question-left">有明确的地方？</div>
+    <div class="question-right">就随意走走？</div>
 
     <!-- 模式选择容器 -->
     <div class="mode-selection-container">
