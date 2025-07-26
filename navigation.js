@@ -103,8 +103,9 @@ class NavigationApp {
             const userMarker = new AMap.Marker({
                 position: [longitude, latitude],
                 icon: new AMap.Icon({
-                    size: new AMap.Size(40, 40),
-                    image: this.createUserLocationIcon()
+                    size: new AMap.Size(53, 62),
+                    image: this.createUserLocationIcon(),
+                    imageOffset: new AMap.Pixel(-26, -58) // 调整图标位置，使底部尖端对准坐标点
                 }),
                 title: '您的位置'
             });
@@ -767,10 +768,24 @@ class NavigationApp {
 
     createUserLocationIcon() {
         const svg = `
-            <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="20" cy="20" r="18" fill="#10b981" stroke="white" stroke-width="3"/>
-                <circle cx="20" cy="20" r="8" fill="white"/>
-                <circle cx="20" cy="20" r="4" fill="#10b981"/>
+            <svg xmlns="http://www.w3.org/2000/svg" width="53" height="62" viewBox="0 0 106 124" fill="none">
+              <g filter="url(#filter0_d_88_768)">
+                <path d="M53 20C44.2509 20.0099 35.863 23.4899 29.6764 29.6765C23.4899 35.8631 20.0099 44.2511 20 53.0003C20 81.2381 50 102.565 51.2788 103.457C51.7832 103.81 52.3841 104 53 104C53.6159 104 54.2168 103.81 54.7212 103.457C56 102.565 86 81.2381 86 53.0003C85.9901 44.2511 82.5101 35.8631 76.3236 29.6765C70.137 23.4899 61.7491 20.0099 53 20Z" fill="white"/>
+              </g>
+              <circle cx="53.5" cy="53.5" r="27.5" fill="#E7E7E7"/>
+              <path d="M49.0837 40.3418C49.0837 39.4831 49.3425 38.6436 49.8274 37.9296C50.3124 37.2156 51.0016 36.6591 51.808 36.3305C52.6144 36.0019 53.5017 35.9159 54.3578 36.0834C55.2139 36.251 56.0002 36.6645 56.6174 37.2717C57.2346 37.8789 57.6549 38.6525 57.8252 39.4948C57.9955 40.337 57.9081 41.21 57.5741 42.0034C57.2401 42.7967 56.6744 43.4748 55.9487 43.9519C55.2229 44.429 54.3697 44.6837 53.4968 44.6837C52.3264 44.6837 51.2039 44.2262 50.3763 43.412C49.5486 42.5977 49.0837 41.4933 49.0837 40.3418ZM67.2754 56.5896L60.1434 48.6347C59.7293 48.1727 59.2199 47.8027 58.6493 47.5492C58.0786 47.2958 57.4596 47.1647 56.8335 47.1647H50.1602C49.5341 47.1647 48.9151 47.2958 48.3444 47.5492C47.7738 47.8027 47.2644 48.1727 46.8503 48.6347L39.7183 56.5896C39.2552 57.0557 38.9972 57.6825 39 58.3343C39.0029 58.9862 39.2663 59.6108 39.7335 60.073C40.2007 60.5353 40.834 60.7981 41.4965 60.8046C42.159 60.8112 42.7976 60.5609 43.2741 60.108L47.3499 56.8873L44.245 68.4986C43.9748 69.0952 43.9547 69.7726 44.189 70.3837C44.4233 70.9948 44.8931 71.4904 45.4964 71.7629C46.0998 72.0354 46.788 72.0628 47.4118 71.8393C48.0355 71.6157 48.5446 71.1591 48.8283 70.5687L53.4968 62.6712L58.159 70.5795C58.4428 71.17 58.9518 71.6265 59.5756 71.8501C60.1994 72.0737 60.8876 72.0463 61.491 71.7738C62.0943 71.5012 62.5641 71.0057 62.7984 70.3945C63.0327 69.7834 63.0126 69.106 62.7424 68.5094L59.6438 56.8873L63.7259 60.108C64.2024 60.5609 64.841 60.8112 65.5035 60.8046C66.166 60.7981 66.7993 60.5353 67.2665 60.073C67.7337 59.6108 67.9971 58.9862 68 58.3343C68.0028 57.6825 67.7448 57.0557 67.2817 56.5896H67.2754Z" fill="#303030"/>
+              <defs>
+                <filter id="filter0_d_88_768" x="0" y="0" width="106" height="124" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                  <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                  <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+                  <feOffset/>
+                  <feGaussianBlur stdDeviation="10"/>
+                  <feComposite in2="hardAlpha" operator="out"/>
+                  <feColorMatrix type="matrix" values="0 0 0 0 0.545098 0 0 0 0 0.792157 0 0 0 0 0.305882 0 0 0 1 0"/>
+                  <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_88_768"/>
+                  <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_88_768" result="shape"/>
+                </filter>
+              </defs>
             </svg>
         `;
         return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
