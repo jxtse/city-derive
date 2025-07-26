@@ -1068,10 +1068,10 @@ function initializeApp() {
             console.log('高德地图API已加载，开始初始化地图...');
             setTimeout(() => {
                 mapService.initMap();
-                // Request user location on initial load
-                mapService.requestUserLocation().catch(error => {
-                    DOMUtils.showMessage('获取位置信息失败: ' + error.message, 'warning');
-                });
+                // 注释掉重复的定位请求，让地图初始化时自动处理
+                // mapService.requestUserLocation().catch(error => {
+                //     DOMUtils.showMessage('获取位置信息失败: ' + error.message, 'warning');
+                // });
             }, 500);
         } else {
             console.log('等待高德地图API加载...');

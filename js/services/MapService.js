@@ -11,6 +11,7 @@ export class MapService {
         this.currentRoute = null;
         this.geolocationService = new GeolocationService();
         this.userLocationMarker = null;
+        this._isRequestingLocation = false; // 防止重复请求定位的标志
     }
     
     // 初始化地图
@@ -460,8 +461,15 @@ export class MapService {
 
     // 私有方法：请求用户位置
     async _requestUserLocation() {
+        // 防止重复请求定位
+        if (this._isRequestingLocation) {
+            console.log('📍 正在请求定位中，跳过重复请求');
+            return;
+        }
+
         try {
             console.log('📍 开始请求用户位置...');
+            this._isRequestingLocation = true;
             
             // 检查是否已经获取过位置
             const cachedPosition = this.geolocationService.getCachedPosition();
@@ -479,6 +487,8 @@ export class MapService {
             console.log('📍 定位被拒绝或失败:', error.message);
             // 不显示错误消息，让用户可以手动选择位置
             this._showLocationFallback();
+        } finally {
+            this._isRequestingLocation = false;
         }
     }
 
@@ -640,6 +650,8 @@ export class MapService {
 
     // 公开方法：重新获取用户位置
     async requestUserLocation() {
+        // 重置定位状态，允许重新请求
+        this._isRequestingLocation = false;
         await this._requestUserLocation();
     }
 
