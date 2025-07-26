@@ -66,88 +66,51 @@
         /* 探索模式浮动按钮 */
         .floating-explore-btn {
             position: fixed;
-            left: calc(50% - 110px);
+            left: calc(50% - 100px);
             bottom: 50px;
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.95));
-            backdrop-filter: blur(25px);
-            border-radius: 60px;
-            box-shadow: 
-                0 15px 35px rgba(0, 0, 0, 0.12),
-                0 8px 20px rgba(0, 0, 0, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.9),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
-            border: 3px solid rgba(255, 255, 255, 0.6);
+            width: 90px;
+            height: 90px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 45px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.8);
             cursor: pointer;
             z-index: 1001;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            animation: gentle-float 4s infinite ease-in-out;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .floating-explore-btn::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.1), transparent);
-            transform: rotate(-45deg);
-            transition: all 0.5s ease;
-            opacity: 0;
-        }
-
-        .floating-explore-btn:hover::before {
-            opacity: 1;
-            animation: shimmer 1.5s ease-in-out infinite;
+            transition: all 0.3s ease;
         }
 
         .floating-explore-btn:hover {
-            transform: translateY(-8px) scale(1.08);
-            box-shadow: 
-                0 25px 50px rgba(0, 0, 0, 0.18),
-                0 15px 30px rgba(102, 126, 234, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 1),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.08);
-            border-color: rgba(102, 126, 234, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
         }
 
         .floating-explore-btn i {
             color: #4a5568;
-            font-size: 2.2rem;
-            margin-bottom: 8px;
+            font-size: 1.8rem;
+            margin-bottom: 6px;
             transition: all 0.3s ease;
-            position: relative;
-            z-index: 2;
         }
 
         .floating-explore-btn:hover i {
             color: #667eea;
-            transform: scale(1.1);
         }
 
         .floating-explore-btn::after {
             content: "探索模式";
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 600;
             color: #64748b;
             position: absolute;
-            bottom: 15px;
+            bottom: 10px;
             white-space: nowrap;
-            transition: all 0.3s ease;
-            z-index: 2;
         }
 
         .floating-explore-btn:hover::after {
             color: #667eea;
-            transform: scale(1.05);
         }
 
         /* 智能规划浮动按钮 */
@@ -155,86 +118,49 @@
             position: fixed;
             left: calc(50% + 10px);
             bottom: 50px;
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.95));
-            backdrop-filter: blur(25px);
-            border-radius: 60px;
-            box-shadow: 
-                0 15px 35px rgba(0, 0, 0, 0.12),
-                0 8px 20px rgba(0, 0, 0, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.9),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
-            border: 3px solid rgba(255, 255, 255, 0.6);
+            width: 90px;
+            height: 90px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 45px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.8);
             cursor: pointer;
             z-index: 1001;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            animation: gentle-float 4s infinite ease-in-out 0.7s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .floating-planner-btn::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(40, 167, 69, 0.1), transparent);
-            transform: rotate(-45deg);
-            transition: all 0.5s ease;
-            opacity: 0;
-        }
-
-        .floating-planner-btn:hover::before {
-            opacity: 1;
-            animation: shimmer 1.5s ease-in-out infinite;
+            transition: all 0.3s ease;
         }
 
         .floating-planner-btn:hover {
-            transform: translateY(-8px) scale(1.08);
-            box-shadow: 
-                0 25px 50px rgba(0, 0, 0, 0.18),
-                0 15px 30px rgba(40, 167, 69, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 1),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.08);
-            border-color: rgba(40, 167, 69, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
         }
 
         .floating-planner-btn i {
             color: #4a5568;
-            font-size: 2.2rem;
-            margin-bottom: 8px;
+            font-size: 1.8rem;
+            margin-bottom: 6px;
             transition: all 0.3s ease;
-            position: relative;
-            z-index: 2;
         }
 
         .floating-planner-btn:hover i {
             color: #28a745;
-            transform: scale(1.1);
         }
 
         .floating-planner-btn::after {
             content: "导航模式";
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 600;
             color: #64748b;
             position: absolute;
-            bottom: 15px;
+            bottom: 10px;
             white-space: nowrap;
-            transition: all 0.3s ease;
-            z-index: 2;
         }
 
         .floating-planner-btn:hover::after {
             color: #28a745;
-            transform: scale(1.05);
         }
 
         /* 规划面板 */
@@ -491,25 +417,7 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
         }
 
-        /* 浮动按钮轻柔浮动动画 */
-        @keyframes gentle-float {
-            0%, 100% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-8px);
-            }
-        }
-
-        /* 光泽动画效果 */
-        @keyframes shimmer {
-            0% {
-                transform: translateX(-100%) rotate(-45deg);
-            }
-            100% {
-                transform: translateX(100%) rotate(-45deg);
-            }
-        }
+        
 
         /* 终端相关样式保持不变 */
         .terminal-line {
@@ -1124,18 +1032,18 @@
             }
 
             .floating-explore-btn {
-                width: 90px;
-                height: 90px;
-                left: calc(50% - 100px);
+                width: 80px;
+                height: 80px;
+                left: calc(50% - 90px);
                 bottom: 30px;
             }
 
             .floating-explore-btn:hover {
-                transform: translateY(-6px) scale(1.06);
+                transform: translateY(-3px);
             }
 
             .floating-explore-btn i {
-                font-size: 1.6rem;
+                font-size: 1.5rem;
                 margin-bottom: 4px;
             }
 
@@ -1145,18 +1053,18 @@
             }
 
             .floating-planner-btn {
-                width: 90px;
-                height: 90px;
+                width: 80px;
+                height: 80px;
                 left: calc(50% + 10px);
                 bottom: 30px;
             }
 
             .floating-planner-btn:hover {
-                transform: translateY(-6px) scale(1.06);
+                transform: translateY(-3px);
             }
 
             .floating-planner-btn i {
-                font-size: 1.6rem;
+                font-size: 1.5rem;
                 margin-bottom: 4px;
             }
 
