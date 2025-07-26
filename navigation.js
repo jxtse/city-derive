@@ -382,7 +382,11 @@ class NavigationApp {
             data.choices.forEach((choice, index) => {
                 const optionElement = document.createElement('div');
                 optionElement.className = 'option-item';
-                optionElement.onclick = () => this.selectOption(choice.option, choice.next_action);
+                optionElement.onclick = () => {
+                    // 选择新选项时，隐藏之前的常驻指令
+                    this.hidePersistentInstruction();
+                    this.selectOption(choice.option, choice.next_action);
+                };
                 
                 optionElement.innerHTML = `
                     <div class="option-text">
@@ -430,16 +434,16 @@ class NavigationApp {
     }
 
     updateAIBubbleWithSelection(selectedOption, nextAction) {
+        // 创建或更新常驻指令信息区域
+        this.createPersistentInstructionArea(selectedOption, nextAction);
+        
         const questionElement = document.getElementById('ai-question');
         const optionsContainer = document.getElementById('options-container');
         
-        // 更新问题显示为选择结果
+        // 更新问题显示为选择结果（简化版）
         questionElement.innerHTML = `
-            <div style="color: #10b981; font-weight: 600; margin-bottom: 8px;">
+            <div style="color: #10b981; font-weight: 600; font-size: 15px;">
                 ✅ 您选择了：${selectedOption}
-            </div>
-            <div style="color: #6b7280; font-size: 14px; line-height: 1.4;">
-                ${nextAction || '正在为您准备相关信息...'}
             </div>
         `;
         
@@ -452,6 +456,78 @@ class NavigationApp {
                 </div>
             </div>
         `;
+    }
+
+    createPersistentInstructionArea(selectedOption, nextAction) {
+        // 检查是否已存在常驻指令区域
+        let instructionArea = document.getElementById('persistent-instruction');
+        
+        if (!instructionArea) {
+            // 创建常驻指令区域
+            instructionArea = document.createElement('div');
+            instructionArea.id = 'persistent-instruction';
+            instructionArea.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                max-width: 380px;
+                width: calc(100% - 40px);
+                background: rgba(255, 255, 255, 0.98);
+                backdrop-filter: blur(20px);
+                border-radius: 16px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                border: 2px solid #10b981;
+                z-index: 1001;
+                padding: 16px 20px;
+                display: none;
+                animation: slideDownInstruction 0.4s ease-out;
+            `;
+            
+            document.body.appendChild(instructionArea);
+        }
+        
+        // 更新指令内容
+        instructionArea.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; flex-shrink: 0;">
+                    🧭
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: #1f2937; font-size: 14px; margin-bottom: 4px;">
+                        跟随指令
+                    </div>
+                    <div style="color: #374151; font-size: 13px; line-height: 1.4;">
+                        ${nextAction || '正在为您准备相关信息...'}
+                    </div>
+                </div>
+                <button onclick="navigationApp.hidePersistentInstruction()" style="background: none; border: none; color: #6b7280; font-size: 18px; cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.2s ease;">
+                    ×
+                </button>
+            </div>
+        `;
+        
+        // 显示指令区域
+        instructionArea.style.display = 'block';
+        
+        // 调整AI气泡位置，避免重叠
+        const aiChatBubble = document.getElementById('ai-chat-bubble');
+        if (aiChatBubble) {
+            aiChatBubble.style.top = '120px'; // 给常驻指令区域留出空间
+        }
+    }
+
+    hidePersistentInstruction() {
+        const instructionArea = document.getElementById('persistent-instruction');
+        if (instructionArea) {
+            instructionArea.style.display = 'none';
+        }
+        
+        // 恢复AI气泡位置
+        const aiChatBubble = document.getElementById('ai-chat-bubble');
+        if (aiChatBubble) {
+            aiChatBubble.style.top = '60px';
+        }
     }
 
     handleUserChoice(option, action) {
