@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -225,7 +224,7 @@
             transform: translateX(3px);
         }
 
-        
+
 
         /* 加载状态 */
         .loading-overlay {
@@ -387,8 +386,659 @@
         </div>
     </div>
 
-    
+    <script src="config.js"></script>
+    <script src="navigation.js"></script>
+</body>
+</html>
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walking Planning</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Walking Planning</h1>
+        <div id="map"></div>
+        <div class="input-panel">
+            <div class="input-group">
+                <label for="start">Start:</label>
+                <input type="text" id="start" placeholder="Enter start location">
+            </div>
+            <div class="input-group">
+                <label for="end">End:</label>
+                <input type="text" id="end" placeholder="Enter end location">
+            </div>
+            <button id="plan">Plan</button>
+        </div>
+    </div>
+
+    <script>
+        // config.js should be loaded before this script
+        const mapKey = config.amapApiKey;
+        const difyToken = config.difyApiKey;
+    </script>
+    <script src="walking-planning.js"></script>
+</body>
+</html>
+```
+
+```javascript
+// config.js
+(function(window) {
+    window.config = {
+        amapApiKey: 'c9e4a3040fef05c4084a21c8a357d37f',
+        difyApiKey: 'your_dify_api_key'
+    };
+})(window);
+```
+
+```javascript
+// navigation.js
+AMap.plugin('AMap.Geolocation', function() {
+    var geolocation = new AMap.Geolocation({
+      enableHighAccuracy: true,//是否使用高精度定位，默认:true
+      timeout: 10000,          //超过10秒后停止定位，默认：无穷大
+      buttonPosition:'RB',    //定位按钮的停靠位置
+      buttonOffset: new AMap.Pixel(10, 20),//定位按钮与设置的停靠位置的偏移量,默认:Pixel(10,20)
+      zoomToAccuracy: true,      //定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
+      buttonDom: '<div style="margin-top: 10px;"><img src="https://webapi.amap.com/images/location.png" style="width: 20px;"/></div>',
+    });
+
+    geolocation.getCurrentPosition(function(status,result){
+        if(status=='complete'){
+            onComplete(result)
+        }else{
+            onError(result)
+        }
+    });
+})
+```
+
+```javascript
+// walking-planning.js
+document.addEventListener('DOMContentLoaded', function() {
+    const mapKey = config.amapApiKey;
+    const difyToken = config.difyApiKey;
+    const map = new AMap.Map('map', {
+        resizeEnable: true,
+        zoom: 13
+    });
+
+    const startInput = document.getElementById('start');
+    const endInput = document.getElementById('end');
+    const planButton = document.getElementById('plan');
+
+    planButton.addEventListener('click', function() {
+        const start = startInput.value;
+        const end = endInput.value;
+
+        AMap.plugin('AMap.Walking', function() {
+            var walking = new AMap.Walking({
+                map: map,
+                panel: "panel"
+            });
+
+            walking.search(start, end, function(status, result) {
+                if (status === 'complete') {
+                    log.success('步行路线规划完成')
+                } else {
+                    log.error('步行路线规划失败' + result)
+                }
+            });
+        });
+    });
+});
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walking Planning</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Walking Planning</h1>
+        <div id="map"></div>
+        <div class="input-panel">
+            <div class="input-group">
+                <label for="start">Start:</label>
+                <input type="text" id="start" placeholder="Enter start location">
+            </div>
+            <div class="input-group">
+                <label for="end">End:</label>
+                <input type="text" id="end" placeholder="Enter end location">
+            </div>
+            <button id="plan">Plan</button>
+        </div>
+    </div>
+
+    <script src="walking-planning.js"></script>
+</body>
+</html>
+```
+
+```javascript
+document.addEventListener('DOMContentLoaded', function() {
+    const map = new AMap.Map('map', {
+        resizeEnable: true,
+        zoom: 13
+    });
+
+    const startInput = document.getElementById('start');
+    const endInput = document.getElementById('end');
+    const planButton = document.getElementById('plan');
+
+    planButton.addEventListener('click', function() {
+        const start = startInput.value;
+        const end = endInput.value;
+
+        AMap.plugin('AMap.Walking', function() {
+            var walking = new AMap.Walking({
+                map: map,
+                panel: "panel"
+            });
+
+            walking.search(start, end, function(status, result) {
+                if (status === 'complete') {
+                    log.success('步行路线规划完成')
+                } else {
+                    log.error('步行路线规划失败' + result)
+                }
+            });
+        });
+    });
+});
+```
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧭 智能导航助手</title>
+    <script src="https://webapi.amap.com/maps?v=1.4.15&key=c9e4a3040fef05c4084a21c8a357d37f"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: #f0f2f5;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 地图容器 */
+        #map-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 地图边缘阴影效果 - 营造探索氛围 */
+        /* #map-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 2;
+            box-shadow: 
+                inset 0 0 100px rgba(0, 0, 0, 0.3),
+                inset 0 0 200px rgba(0, 0, 0, 0.15),
+                inset 0 0 300px rgba(0, 0, 0, 0.1);
+            border-radius: 0;
+        } */
+
+        /* 四角渐变阴影增强探索感 */
+        /* #map-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 3;
+            background: 
+                radial-gradient(circle at top left, rgba(0, 0, 0, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at top right, rgba(0, 0, 0, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at bottom left, rgba(0, 0, 0, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at bottom right, rgba(0, 0, 0, 0.4) 0%, transparent 50%);
+        } */
+
+        /* 问题卡片 - 顶部显示 */
+        .ai-question-card {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 600px;
+            width: calc(100% - 40px);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 45px 45px 0 rgba(166, 166, 166, 0.25);
+            border: 2px solid #8BC34A;
+            z-index: 1000;
+            padding: 20px 24px;
+            display: none;
+            animation: slideDown 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .ai-question-card.show {
+            display: block;
+        }
+
+        .question-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ai-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .ai-question {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2E2E2E;
+            line-height: 1.4;
+            margin: 0;
+            flex: 1;
+        }
+
+        .close-btn {
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 18px;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .close-btn:hover {
+            background: rgba(0, 0, 0, 0.2);
+            color: #333;
+            transform: scale(1.1);
+        }
+
+        /* 选项卡片 - 下半部分显示 */
+        .ai-options-card {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 600px;
+            width: calc(100% - 40px);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            padding: 20px;
+            display: none;
+            animation: slideUp 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .ai-options-card.show {
+            display: block;
+        }
+
+        /* 选项列表 - 按照图片的彩色卡片设计 */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-item {
+            background: #E8F5E8;
+            border: none;
+            border-radius: 16px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-item:nth-child(1) {
+            background: linear-gradient(135deg, #E8F5E8, #C8E6C9);
+        }
+
+        .option-item:nth-child(2) {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+        }
+
+        .option-item:nth-child(3) {
+            background: linear-gradient(135deg, #F3E5F5, #E1BEE7);
+        }
+
+        .option-item:nth-child(4) {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+        }
+
+        .option-item:hover {
+            opacity: 0.9;
+            box-shadow: 0 45px 45px 0 rgba(166, 166, 166, 0.25);
+        }
+
+        .option-text {
+            font-size: 15px;
+            font-weight: 500;
+            color: #2E2E2E;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            line-height: 1.3;
+        }
+
+        .option-arrow {
+            font-size: 18px;
+            color: #666;
+            transition: all 0.2s ease;
+            opacity: 0.8;
+        }
+
+        .option-item:hover .option-arrow {
+            opacity: 1;
+            transform: translateX(3px);
+        }
+
+
+
+        /* 加载状态 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            display: none;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 45px 45px 0 rgba(166, 166, 166, 0.25);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        .loading-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        /* 动画效果 */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                opacity: 0.3; 
+                transform: scale(0.8);
+            }
+            50% { 
+                opacity: 1; 
+                transform: scale(1.2);
+            }
+        }
+
+        @keyframes slideDownInstruction {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -30px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .ai-question-card {
+                max-width: none;
+                width: calc(100% - 20px);
+                top: 15px;
+                padding: 16px 20px;
+            }
+
+            .ai-options-card {
+                max-width: none;
+                width: calc(100% - 20px);
+                bottom: 40px;
+                padding: 16px;
+            }
+
+            .ai-question {
+                font-size: 16px;
+            }
+
+            .ai-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 地图容器 -->
+    <div id="map-container">
+        <div id="map"></div>
+    </div>
+
+    <!-- AI问题卡片 - 顶部 -->
+    <div class="ai-question-card" id="ai-question-card">
+        <div class="question-header">
+            <div class="ai-avatar" id="ai-avatar"></div>
+            <div class="ai-question" id="ai-question">
+                正在分析您的位置...
+            </div>
+            <button class="close-btn" onclick="hideAIBubble()">×</button>
+        </div>
+    </div>
+
+    <!-- AI选项卡片 - 底部 -->
+    <div class="ai-options-card" id="ai-options-card">
+        <div class="options-container" id="options-container">
+            <div style="text-align: center; padding: 20px; color: #6b7280;">
+                <div style="font-size: 14px;">🤖 AI正在获取位置信息...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载遮罩 -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">AI正在分析您的位置...</div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        // config.js should be loaded before this script
+        AMap = window.AMap
+        const mapKey = config.amapApiKey;
+        const difyToken = config.difyApiKey;
+    </script>
 
     <script src="navigation.js"></script>
 </body>
 </html>
+// config.js
+(function(window) {
+    window.config = {
+        amapApiKey: 'c9e4a3040fef05c4084a21c8a357d37f',
+        difyApiKey: 'your_dify_api_key'
+    };
+})(window);
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walking Planning</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Walking Planning</h1>
+        <div id="map"></div>
+        <div class="input-panel">
+            <div class="input-group">
+                <label for="start">Start:</label>
+                <input type="text" id="start" placeholder="Enter start location">
+            </div>
+            <div class="input-group">
+                <label for="end">End:</label>
+                <input type="text" id="end" placeholder="Enter end location">
+            </div>
+            <button id="plan">Plan</button>
+        </div>
+    </div>
+
+    <script>
+        // config.js should be loaded before this script
+        const mapKey = config.amapApiKey;
+        const difyToken = config.difyApiKey;
+    </script>
+    <script src="walking-planning.js"></script>
+</body>
+</html>
+```
+
+```javascript
+document.addEventListener('DOMContentLoaded', function() {
+    const map = new AMap.Map('map', {
+        resizeEnable: true,
+        zoom: 13
+    });
+
+    const startInput = document.getElementById('start');
+    const endInput = document.getElementById('end');
+    const planButton = document.getElementById('plan');
+
+    planButton.addEventListener('click', function() {
+        const start = startInput.value;
+        const end = endInput.value;
+
+        AMap.plugin('AMap.Walking', function() {
+            var walking = new AMap.Walking({
+                map: map,
+                panel: "panel"
+            });
+
+            walking.search(start, end, function(status, result) {
+                if (status === 'complete') {
+                    log.success('步行路线规划完成')
+                } else {
+                    log.error('步行路线规划失败' + result)
+                }
+            });
+        });
+    });
+});

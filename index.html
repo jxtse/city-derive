@@ -6,7 +6,15 @@
     <title>🌟 智能散步路线规划器</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://webapi.amap.com/maps?v=1.4.15&&key=c9e4a3040fef05c4084a21c8a357d37f"></script>
+    <script src="config.js"></script>
+    <script>
+        // 等待配置文件加载完成后加载高德地图
+        window.addEventListener('DOMContentLoaded', function() {
+            const script = document.createElement('script');
+            script.src = `https://webapi.amap.com/maps?v=1.4.15&key=${window.API_CONFIG.AMAP_API_KEY}`;
+            document.head.appendChild(script);
+        });
+    </script>
     <style>
         /* 重新设计的主要样式 */
         body {
@@ -1690,8 +1698,8 @@
                 if (!this.apiToken) {
                     // 如果没有token，可以提示用户输入或使用默认值
                     console.log('未找到Dify API Token，请在控制台设置：localStorage.setItem("dify_api_token", "your-token")');
-                    // 使用测试Token（请替换为真实Token）
-                    this.apiToken = 'app-66AeBLjLKMIYEsb5ufu0h8Ch';
+                    // 从配置文件获取API Token
+                    this.apiToken = window.API_CONFIG?.DIFY_API_TOKEN || 'YOUR_DIFY_API_TOKEN';
                 }
             }
 

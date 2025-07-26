@@ -4,8 +4,8 @@ class NavigationApp {
         this.map = null;
         this.userLocation = null;
         this.currentPOIDetails = null;
-        this.apiKey = 'c9e4a3040fef05c4084a21c8a357d37f';
-        this.difyApiToken = 'app-66AeBLjLKMIYEsb5ufu0h8Ch';
+        this.apiKey = window.API_CONFIG?.AMAP_API_KEY || 'YOUR_AMAP_API_KEY';
+        this.difyApiToken = window.API_CONFIG?.DIFY_API_TOKEN || 'YOUR_DIFY_API_TOKEN';
         this.difyBaseUrl = 'https://api.dify.ai/v1';
         this.cachedNextOptions = null; // 缓存下一轮选项
 

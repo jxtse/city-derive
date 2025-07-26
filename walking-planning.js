@@ -7,7 +7,7 @@ let currentRoute = null;
 // OpenRouter API配置
 const OPENROUTER_CONFIG = {
     baseUrl: "https://openrouter.ai/api/v1",
-    apiKey: "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",
+    apiKey: window.API_CONFIG?.OPENROUTER_API_KEY || "YOUR_OPENROUTER_API_KEY",
     model: "anthropic/claude-sonnet-4"
 };
 
@@ -15,7 +15,7 @@ const OPENROUTER_CONFIG = {
 class LLMPlanningAgent {
     constructor() {
         console.log('🤖 初始化LLM智能规划代理...');
-        this.apiKey = "c9e4a3040fef05c4084a21c8a357d37f";
+        this.apiKey = window.API_CONFIG?.AMAP_API_KEY || "YOUR_AMAP_API_KEY";
         this.webApiBase = "https://restapi.amap.com/v3";
         this.planningHistory = [];
     }
