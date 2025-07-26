@@ -1,4 +1,3 @@
-
 // Navigation页面的核心功能
 class NavigationApp {
     constructor() {
@@ -8,29 +7,29 @@ class NavigationApp {
         this.apiKey = 'c9e4a3040fef05c4084a21c8a357d37f';
         this.difyApiToken = 'app-66AeBLjLKMIYEsb5ufu0h8Ch';
         this.difyBaseUrl = 'https://api.dify.ai/v1';
-        
+
         this.init();
     }
 
     async init() {
         console.log('🚀 初始化导航应用...');
-        
+
         // 初始化地图
         await this.initMap();
-        
+
         // 获取用户位置
         await this.getUserLocation();
-        
+
         // 初始化AI问答
         this.setupAIChat();
-        
+
         console.log('✅ 导航应用初始化完成');
     }
 
     async initMap() {
         try {
             console.log('🗺️ 初始化地图...');
-            
+
             this.map = new AMap.Map('map', {
                 zoom: 16,
                 center: [116.397428, 39.90923], // 默认北京中心
@@ -45,7 +44,7 @@ class NavigationApp {
                     position: 'LB'
                 });
                 this.map.addControl(scale);
-                
+
                 // 工具条控件
                 const toolbar = new AMap.ToolBar({
                     position: 'RT'
@@ -64,10 +63,10 @@ class NavigationApp {
 
     async getUserLocation() {
         this.showLoading('正在获取您的位置...');
-        
+
         try {
             console.log('📍 开始获取用户位置...');
-            
+
             // 使用浏览器Geolocation API
             const position = await new Promise((resolve, reject) => {
                 if (!navigator.geolocation) {
@@ -88,12 +87,12 @@ class NavigationApp {
 
             const { latitude, longitude } = position.coords;
             this.userLocation = { latitude, longitude };
-            
+
             console.log('✅ 获取到用户位置:', this.userLocation);
 
             // 更新地图中心
             this.map.setCenter([longitude, latitude]);
-            
+
             // 添加用户位置标记
             const userMarker = new AMap.Marker({
                 position: [longitude, latitude],
@@ -107,14 +106,14 @@ class NavigationApp {
 
             // 获取当前位置的POI详情
             await this.getCurrentLocationPOI();
-            
+
             // 更新位置显示
             this.updateLocationDisplay();
-            
+
         } catch (error) {
             console.error('❌ 获取位置失败:', error);
             this.updateLocationDisplay('位置获取失败');
-            
+
             // 使用IP定位作为备选
             await this.getLocationByIP();
         } finally {
@@ -125,19 +124,19 @@ class NavigationApp {
     async getLocationByIP() {
         try {
             console.log('🌐 尝试IP定位...');
-            
+
             // 使用高德地图IP定位API
             const response = await fetch(`https://restapi.amap.com/v3/ip?key=${this.apiKey}`);
             const data = await response.json();
-            
+
             if (data.status === "1" && data.rectangle) {
                 const coords = data.rectangle.split(';')[0].split(',');
                 const longitude = parseFloat(coords[0]);
                 const latitude = parseFloat(coords[1]);
-                
+
                 this.userLocation = { latitude, longitude };
                 this.map.setCenter([longitude, latitude]);
-                
+
                 console.log('✅ IP定位成功:', this.userLocation);
                 this.updateLocationDisplay();
                 await this.getCurrentLocationPOI();
@@ -153,20 +152,20 @@ class NavigationApp {
 
         try {
             console.log('🔍 获取当前位置POI信息...');
-            
+
             const { longitude, latitude } = this.userLocation;
-            
+
             // 搜索周边POI
             const response = await fetch(
                 `https://restapi.amap.com/v3/place/around?location=${longitude},${latitude}&radius=100&key=${this.apiKey}`
             );
-            
+
             const data = await response.json();
-            
+
             if (data.status === "1" && data.pois && data.pois.length > 0) {
                 const nearestPOI = data.pois[0];
                 console.log('📍 找到最近的POI:', nearestPOI);
-                
+
                 // 获取详细信息
                 await this.getPOIDetails(nearestPOI.id);
             } else {
@@ -180,17 +179,17 @@ class NavigationApp {
     async getPOIDetails(poiId) {
         try {
             console.log('📋 获取POI详细信息:', poiId);
-            
+
             const response = await fetch(
                 `https://restapi.amap.com/v3/place/detail?id=${poiId}&key=${this.apiKey}`
             );
-            
+
             const data = await response.json();
-            
+
             if (data.status === "1" && data.pois && data.pois.length > 0) {
                 this.currentPOIDetails = data.pois[0];
                 console.log('✅ 获取到POI详情:', this.currentPOIDetails);
-                
+
                 // 调用Dify API分析POI
                 await this.analyzeLocationWithDify();
             }
@@ -204,9 +203,9 @@ class NavigationApp {
 
         try {
             console.log('🤖 调用Dify AI分析位置...');
-            
+
             const locationDescription = `${this.currentPOIDetails.name} - ${this.currentPOIDetails.address}`;
-            
+
             const response = await fetch(`${this.difyBaseUrl}/workflows/run`, {
                 method: 'POST',
                 headers: {
@@ -223,15 +222,31 @@ class NavigationApp {
             });
 
             if (!response.ok) {
-                throw new Error(`Dify API调用失败: ${response.status}`);
+                const errorText = await response.text();
+                throw new Error(`Dify API调用失败: ${response.status} - ${errorText}`);
             }
 
             const result = await response.json();
             console.log('✅ Dify AI分析结果:', result);
-            
+
             if (result.data && result.data.outputs && result.data.outputs.task_output) {
-                const taskOutput = JSON.parse(result.data.outputs.task_output);
-                this.updateAIBubble(taskOutput);
+                try {
+                    const taskOutput = JSON.parse(result.data.outputs.task_output);
+                    console.log('✅ 解析的AI任务输出:', taskOutput);
+
+                    // 验证数据格式
+                    if (taskOutput.question && taskOutput.choices && Array.isArray(taskOutput.choices)) {
+                        this.updateAIBubble(taskOutput);
+                        console.log('✅ 真实Dify API数据已显示');
+                    } else {
+                        throw new Error('API返回的数据格式不符合预期');
+                    }
+                } catch (parseError) {
+                    console.error('❌ 解析API响应失败:', parseError);
+                    throw parseError;
+                }
+            } else {
+                throw new Error('API响应中缺少必要的数据字段');
             }
         } catch (error) {
             console.error('❌ Dify AI分析失败:', error);
@@ -251,22 +266,22 @@ class NavigationApp {
     async getNextOptionsFromDify(selectedOption, selectedAction) {
         try {
             console.log('🔄 获取下一轮选项...', selectedOption, selectedAction);
-            
+
             // 构建包含当前位置和用户选择的上下文
             const currentLocation = this.currentPOIDetails ? 
                 `${this.currentPOIDetails.name} - ${this.currentPOIDetails.address}` : 
                 '用户当前位置';
-            
+
             const contextInfo = {
                 current_location: currentLocation,
                 user_choice: selectedOption,
                 previous_action: selectedAction,
                 user_coordinates: this.userLocation
             };
-            
+
             // 显示加载状态
             this.showLoadingInBubble();
-            
+
             const response = await fetch(`${this.difyBaseUrl}/workflows/run`, {
                 method: 'POST',
                 headers: {
@@ -290,7 +305,7 @@ class NavigationApp {
 
             const result = await response.json();
             console.log('✅ 获取到下一轮选项:', result);
-            
+
             if (result.data && result.data.outputs && result.data.outputs.task_output) {
                 const taskOutput = JSON.parse(result.data.outputs.task_output);
                 this.updateAIBubble(taskOutput);
@@ -298,7 +313,7 @@ class NavigationApp {
                 // 如果API没有返回预期格式，生成基于当前选择的后续选项
                 this.generateFollowUpOptions(selectedOption);
             }
-            
+
         } catch (error) {
             console.error('❌ 获取下一轮选项失败:', error);
             // 生成基于当前选择的后续选项
@@ -309,14 +324,14 @@ class NavigationApp {
     showLoadingInBubble() {
         const questionElement = document.getElementById('ai-question');
         const optionsContainer = document.getElementById('options-container');
-        
+
         questionElement.innerHTML = `
             <div style="display: flex; align-items: center; gap: 8px; color: #667eea;">
                 <div class="loading-spinner" style="width: 16px; height: 16px; border: 2px solid #f3f4f6; border-top: 2px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                 正在获取下一步建议...
             </div>
         `;
-        
+
         optionsContainer.innerHTML = `
             <div style="text-align: center; padding: 20px; color: #6b7280;">
                 <div style="font-size: 14px;">🤖 AI正在思考中...</div>
@@ -326,7 +341,7 @@ class NavigationApp {
 
     generateFollowUpOptions(previousChoice) {
         console.log('🎯 生成基于选择的后续选项:', previousChoice);
-        
+
         // 基于用户之前的选择生成相关的后续选项
         const followUpMap = {
             '水池/人工小湖': {
@@ -366,7 +381,7 @@ class NavigationApp {
                 ]
             }
         };
-        
+
         const followUp = followUpMap[previousChoice] || {
             question: '您想继续探索什么？',
             choices: [
@@ -376,21 +391,21 @@ class NavigationApp {
                 { option: "未来发展规划", next_action: "了解区域发展前景" }
             ]
         };
-        
+
         this.updateAIBubble(followUp);
     }
 
     updateAIBubble(data) {
         const questionElement = document.getElementById('ai-question');
         const optionsContainer = document.getElementById('options-container');
-        
+
         if (data.question) {
             questionElement.textContent = data.question;
         }
-        
+
         if (data.choices && data.choices.length > 0) {
             optionsContainer.innerHTML = '';
-            
+
             data.choices.forEach((choice, index) => {
                 const optionElement = document.createElement('div');
                 optionElement.className = 'option-item';
@@ -399,14 +414,14 @@ class NavigationApp {
                     this.hidePersistentInstruction();
                     this.selectOption(choice.option, choice.next_action);
                 };
-                
+
                 optionElement.innerHTML = `
                     <div class="option-text">
                         ${choice.option}
                         <span class="option-arrow">→</span>
                     </div>
                 `;
-                
+
                 optionsContainer.appendChild(optionElement);
             });
         }
@@ -429,15 +444,15 @@ class NavigationApp {
 
     selectOption(option, action) {
         console.log('✅ 用户选择:', option, action);
-        
+
         // 更新AI气泡显示选择结果和下一步动作
         this.updateAIBubbleWithSelection(option, action);
-        
+
         // 1.5秒后调用Dify API获取下一轮选项
         setTimeout(() => {
             this.getNextOptionsFromDify(option, action);
         }, 1500);
-        
+
         // 执行相应的动作
         this.handleUserChoice(option, action);
     }
@@ -445,17 +460,17 @@ class NavigationApp {
     updateAIBubbleWithSelection(selectedOption, nextAction) {
         // 创建或更新常驻指令信息区域
         this.createPersistentInstructionArea(selectedOption, nextAction);
-        
+
         const questionElement = document.getElementById('ai-question');
         const optionsContainer = document.getElementById('options-container');
-        
+
         // 更新问题显示为选择结果（简化版）
         questionElement.innerHTML = `
             <div style="color: #10b981; font-weight: 600; font-size: 15px;">
                 ✅ 您选择了：${selectedOption}
             </div>
         `;
-        
+
         // 清空选项容器，显示确认信息
         optionsContainer.innerHTML = `
             <div style="text-align: center; padding: 16px; background: rgba(16, 185, 129, 0.1); border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
@@ -470,7 +485,7 @@ class NavigationApp {
     createPersistentInstructionArea(selectedOption, nextAction) {
         // 检查是否已存在常驻指令区域
         let instructionArea = document.getElementById('persistent-instruction');
-        
+
         if (!instructionArea) {
             // 创建常驻指令区域
             instructionArea = document.createElement('div');
@@ -492,10 +507,10 @@ class NavigationApp {
                 display: none;
                 animation: slideDownInstruction 0.4s ease-out;
             `;
-            
+
             document.body.appendChild(instructionArea);
         }
-        
+
         // 更新指令内容
         instructionArea.innerHTML = `
             <div style="display: flex; align-items: center; gap: 12px;">
@@ -515,10 +530,10 @@ class NavigationApp {
                 </button>
             </div>
         `;
-        
+
         // 显示指令区域
         instructionArea.style.display = 'block';
-        
+
         // 调整AI气泡位置，避免重叠
         const aiChatBubble = document.getElementById('ai-chat-bubble');
         if (aiChatBubble) {
@@ -531,7 +546,7 @@ class NavigationApp {
         if (instructionArea) {
             instructionArea.style.display = 'none';
         }
-        
+
         // 恢复AI气泡位置
         const aiChatBubble = document.getElementById('ai-chat-bubble');
         if (aiChatBubble) {
@@ -541,7 +556,7 @@ class NavigationApp {
 
     handleUserChoice(option, action) {
         console.log('🎯 执行用户选择的动作:', action);
-        
+
         // 根据选择的选项执行不同的动作
         switch(option) {
             case '水池/人工小湖':
@@ -598,16 +613,16 @@ class NavigationApp {
 
     updateLocationDisplay(customText = null) {
         const locationText = document.getElementById('location-text');
-        
+
         if (customText) {
             locationText.textContent = customText;
             return;
         }
-        
+
         if (this.userLocation) {
             const { latitude, longitude } = this.userLocation;
             locationText.textContent = `当前位置: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-            
+
             if (this.currentPOIDetails) {
                 locationText.textContent = `📍 ${this.currentPOIDetails.name}`;
             }
@@ -646,9 +661,9 @@ class NavigationApp {
             animation: slideInRight 0.3s ease-out;
         `;
         messageElement.textContent = message;
-        
+
         document.body.appendChild(messageElement);
-        
+
         setTimeout(() => {
             if (messageElement.parentNode) {
                 messageElement.parentNode.removeChild(messageElement);
