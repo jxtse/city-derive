@@ -871,21 +871,16 @@ async function handlePlanningForm(event) {
     submitButton.innerHTML = '<i class="fas fa-brain fa-spin"></i> AI智能规划中...';
 
     try {
-        uiController.updatePlanningStatus('🤖 AI正在深度分析您的需求...', 'loading', 
+        const initStepId = uiController.updatePlanningStatus('🤖 AI正在深度分析您的需求...', 'loading', 
             '正在启动智能代理，准备调用地图API', 
             { step: 1, action: '初始化AI智能代理', result: 'running' }
         );
 
-        // 延迟显示启动成功状态
         setTimeout(() => {
-            uiController.updatePlanningStatus('✅ AI智能代理启动成功', 'success', 
-                'AI智能代理已准备就绪，开始分析需求', 
-                { step: 2, action: '开始智能路线规划', result: 'running' }
-            );
+            uiController.updateStepStatus(initStepId, 'completed', '✅ AI智能代理启动成功');
         }, 1000);
 
         const result = await routeService.planRoute(preferences.startLocation, preferences.city, preferences);
-        console.log('✅ AI规划完成，结果:', result);
 
         uiController.updatePlanningStatus('✅ AI智能规划完成！', 'success', 
             `AI经过${result.technical_info?.planning_steps?.length || '多'}轮分析生成最优路线`,
@@ -944,23 +939,6 @@ function setupMapControls() {
     DOMUtils.safeAddEventListener('export-route', 'click', () => {
         if (currentRoute) {
             exportRoute(currentRoute);
-        }
-    });
-
-    DOMUtils.safeAddEventListener('toggle-dify', 'click', () => {
-        if (currentRoute) {
-            exportRoute(currentRoute);
-        }
-    });
-
-    // 添加重新定位按钮
-    DOMUtils.safeAddEventListener('relocate-user', 'click', async () => {
-        if (mapService) {
-            try {
-                await mapService.requestUserLocation();
-            } catch (error) {
-                DOMUtils.showMessage('重新定位失败: ' + error.message, 'error');
-            }
         }
     });
 }
@@ -1073,10 +1051,6 @@ function initializeApp() {
             console.log('高德地图API已加载，开始初始化地图...');
             setTimeout(() => {
                 mapService.initMap();
-                // Request user location on initial load
-                mapService.requestUserLocation().catch(error => {
-                    DOMUtils.showMessage('获取位置信息失败: ' + error.message, 'warning');
-                });
             }, 500);
         } else {
             console.log('等待高德地图API加载...');
