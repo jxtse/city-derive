@@ -941,6 +941,23 @@ function setupMapControls() {
             exportRoute(currentRoute);
         }
     });
+
+    DOMUtils.safeAddEventListener('toggle-dify', 'click', () => {
+        if (currentRoute) {
+            exportRoute(currentRoute);
+        }
+    });
+
+    // 添加重新定位按钮
+    DOMUtils.safeAddEventListener('relocate-user', 'click', async () => {
+        if (mapService) {
+            try {
+                await mapService.requestUserLocation();
+            } catch (error) {
+                DOMUtils.showMessage('重新定位失败: ' + error.message, 'error');
+            }
+        }
+    });
 }
 
 // 显示详细步骤
@@ -1051,6 +1068,10 @@ function initializeApp() {
             console.log('高德地图API已加载，开始初始化地图...');
             setTimeout(() => {
                 mapService.initMap();
+                // Request user location on initial load
+                mapService.requestUserLocation().catch(error => {
+                    DOMUtils.showMessage('获取位置信息失败: ' + error.message, 'warning');
+                });
             }, 500);
         } else {
             console.log('等待高德地图API加载...');
