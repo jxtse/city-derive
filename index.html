@@ -66,13 +66,14 @@
         /* 智能规划浮动按钮 */
         .floating-planner-btn {
             position: fixed;
-            right: 30px;
-            bottom: 30px;
-            width: 70px;
-            height: 70px;
+            left: 50%;
+            bottom: 40px;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 120px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 50%;
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.5);
             border: none;
             cursor: pointer;
             z-index: 1001;
@@ -84,13 +85,13 @@
         }
 
         .floating-planner-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.6);
+            transform: translateX(-50%) scale(1.1);
+            box-shadow: 0 16px 50px rgba(102, 126, 234, 0.7);
         }
 
         .floating-planner-btn i {
             color: white;
-            font-size: 1.8rem;
+            font-size: 2.5rem;
         }
 
         /* 规划面板 */
@@ -972,14 +973,19 @@
             }
 
             .floating-planner-btn {
-                width: 60px;
-                height: 60px;
-                right: 20px;
+                width: 100px;
+                height: 100px;
+                left: 50%;
                 bottom: 20px;
+                transform: translateX(-50%);
+            }
+
+            .floating-planner-btn:hover {
+                transform: translateX(-50%) scale(1.1);
             }
 
             .floating-planner-btn i {
-                font-size: 1.5rem;
+                font-size: 2rem;
             }
 
             .app-title {
