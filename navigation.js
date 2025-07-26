@@ -32,8 +32,9 @@ class NavigationApp {
 
             this.map = new AMap.Map('map', {
                 zoom: 16,
-                center: [116.397428, 39.90923], // 默认北京中心
-                mapStyle: 'amap://styles/light',
+                center: [120.007986, 30.293312], // 默认湖畔创研中心
+                features: ['bg', "road", "building"], 
+                mapStyle: 'amap://styles/macaron',
                 viewMode: '2D'
             });
 

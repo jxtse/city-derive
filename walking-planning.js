@@ -4133,7 +4133,7 @@ function initMap() {
         // 创建地图实例
         map = new AMap.Map('map', {
             zoom: 12,
-            center: [116.397428, 39.90923], // 北京中心
+            center: [120.007986, 30.293312], // 默认湖畔创研中心            
             features: ['bg', "road", "building"], 
             mapStyle: 'amap://styles/macaron',
             viewMode: '2D',
