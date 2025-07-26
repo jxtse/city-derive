@@ -430,35 +430,9 @@ class NavigationApp {
             this.updateAIBubble(this.cachedNextOptions);
             this.cachedNextOptions = null; // 清空缓存
         } else {
-            console.log('⚠️ 没有缓存的选项，显示默认状态');
-            const questionElement = document.getElementById('ai-question');
-            const optionsContainer = document.getElementById('options-container');
-            
-            questionElement.innerHTML = `
-                <div style="color: #10b981; font-weight: 600; font-size: 15px;">
-                    🎉 任务完成！
-                </div>
-            `;
-            
-            optionsContainer.innerHTML = `
-                <div style="text-align: center; padding: 20px;">
-                    <div style="color: #374151; font-size: 14px; margin-bottom: 16px;">
-                        您已完成当前步骤
-                    </div>
-                    <button onclick="navigationApp.retryDifyAnalysis()" style="
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        color: white;
-                        border: none;
-                        padding: 12px 24px;
-                        border-radius: 12px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                    ">
-                        🔄 获取新的AI建议
-                    </button>
-                </div>
-            `;
+            console.log('⚠️ 没有缓存的选项，重新获取AI建议');
+            // 直接重新获取AI建议，不显示中间状态
+            this.retryDifyAnalysis();
         }
     }
 
