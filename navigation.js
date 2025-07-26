@@ -30,10 +30,10 @@ class NavigationSystem {
             this.initMap();
             
             // 绑定事件
-            this.bindEvents();
+            // this.bindEvents();
             
             // 开始定位
-            this.startLocationTracking();
+            // this.startLocationTracking();
             
             console.log('✅ 导航系统初始化完成');
         } catch (error) {
