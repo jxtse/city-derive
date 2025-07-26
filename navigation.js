@@ -603,24 +603,29 @@ class NavigationApp {
             document.body.appendChild(completionButton);
         }
 
+        // 创建勾选SVG图标
+        const checkIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="23" viewBox="0 0 30 23" fill="none">
+            <path d="M28.6177 5.89485L12.453 22.0239C12.0753 22.4005 11.5632 22.6121 11.0292 22.6121C10.4952 22.6121 9.98304 22.4005 9.60532 22.0239L0.588875 12.9796C0.211793 12.6027 0 12.092 0 11.5595C0 11.027 0.211793 10.5162 0.588875 10.1394L3.10673 7.62709C3.48424 7.25199 3.9953 7.04139 4.52806 7.04139C5.06082 7.04139 5.57189 7.25199 5.94939 7.62709L11.0795 12.5914L23.2609 0.586326C23.6385 0.210841 24.1498 0 24.6829 0C25.2159 0 25.7273 0.210841 26.1048 0.586326L28.6164 3.04086C28.8053 3.22762 28.9552 3.44984 29.0576 3.69472C29.16 3.93959 29.2127 4.20227 29.2129 4.46759C29.213 4.73292 29.1604 4.99564 29.0583 5.2406C28.9561 5.48557 28.8064 5.70792 28.6177 5.89485Z" fill="#8BCA4E"/>
+        </svg>`;
+
         // 更新按钮内容
         completionButton.innerHTML = `
             <button onclick="navigationApp.markStepAsCompleted()" style="
-                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                color: white;
-                border: none;
+                background: white;
+                color: black;
+                border: 2px solid #8BCA4E;
                 padding: 14px 28px;
                 border-radius: 25px;
                 font-weight: 600;
                 font-size: 16px;
                 cursor: pointer;
                 transition: all 0.3s ease;
-                box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+                box-shadow: 0 6px 20px rgba(139, 195, 74, 0.3);
                 display: flex;
                 align-items: center;
                 gap: 8px;
             ">
-                ✅ 已完成
+                ${checkIcon} 已完成
             </button>
         `;
 
