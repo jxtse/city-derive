@@ -4132,8 +4132,10 @@ function initMap() {
 
         // 创建地图实例
         map = new AMap.Map('map', {
-            zoom: 12,
-            center: [120.007986, 30.293312], // 默认湖畔创研中心            
+            zoom: 15,
+            zoomEnable: false,
+            dragEnable: false,
+            center: [120.007986, 30.294922], // 默认湖畔创研中心            
             features: ['bg', "road", "building"], 
             mapStyle: 'amap://styles/macaron',
             viewMode: '2D',
