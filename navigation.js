@@ -1,3 +1,4 @@
+
 // 导航系统类
 class NavigationSystem {
     constructor() {
@@ -11,29 +12,29 @@ class NavigationSystem {
         this.startTime = null;
         this.totalDistance = 0;
         this.walkedDistance = 0;
-
+        
         this.markers = [];
         this.polylines = [];
-
+        
         this.init();
     }
 
     async init() {
         console.log('🧭 初始化导航系统...');
-
+        
         try {
             // 加载路线数据
             await this.loadRouteData();
-
+            
             // 初始化地图
             this.initMap();
-
+            
             // 绑定事件
-            // this.bindEvents();
-
+            this.bindEvents();
+            
             // 开始定位
-            // this.startLocationTracking();
-
+            this.startLocationTracking();
+            
             console.log('✅ 导航系统初始化完成');
         } catch (error) {
             console.error('❌ 导航系统初始化失败:', error);
@@ -44,36 +45,20 @@ class NavigationSystem {
     async loadRouteData() {
         try {
             console.log('📄 加载路线数据...');
-
-            // 首先尝试从localStorage加载路线数据
-            const localRouteData = localStorage.getItem('current_route_data');
-
-            if (localRouteData && localRouteData !== 'null') {
-                try {
-                    this.routeData = JSON.parse(localRouteData);
-                    console.log('✅ 从localStorage加载路线数据成功:', this.routeData);
-                } catch (parseError) {
-                    console.warn('⚠️ localStorage中的路线数据格式错误，尝试加载默认文件');
-                    throw new Error('本地路线数据格式错误');
-                }
-            } else {
-                console.log('📁 localStorage中没有路线数据，尝试加载默认文件...');
-                // 如果localStorage中没有数据，尝试加载默认文件
-                const response = await fetch('./current_route_data.json');
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: 无法加载路线数据`);
-                }
-
-                this.routeData = await response.json();
-                console.log('✅ 从文件加载路线数据成功:', this.routeData);
+            const response = await fetch('./detailed_walking_route_1753535070950.json');
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: 无法加载路线数据`);
             }
-
+            
+            this.routeData = await response.json();
+            console.log('✅ 路线数据加载成功:', this.routeData);
+            
             // 计算总距离
             this.totalDistance = this.routeData.route_summary?.total_distance_meters || 0;
-
+            
             // 初始化UI
             this.updateRouteOverview();
-
+            
         } catch (error) {
             console.error('❌ 加载路线数据失败:', error);
             throw new Error('无法加载路线数据，请确保文件存在');
@@ -82,7 +67,7 @@ class NavigationSystem {
 
     initMap() {
         console.log('🗺️ 初始化导航地图...');
-
+        
         // 创建地图实例
         this.map = new AMap.Map('navigation-map', {
             zoom: 16,
@@ -99,16 +84,16 @@ class NavigationSystem {
 
         // 绘制路线
         this.drawRoute();
-
+        
         console.log('✅ 导航地图初始化完成');
     }
 
     drawRoute() {
         console.log('🎨 绘制导航路线...');
-
+        
         // 清除现有标记和路线
         this.clearMapElements();
-
+        
         if (!this.routeData?.path_details?.real_path_coordinates) {
             console.warn('⚠️ 没有找到路径坐标数据');
             return;
@@ -126,88 +111,67 @@ class NavigationSystem {
                 lineJoin: 'round',
                 lineCap: 'round'
             });
-
+            
             this.map.add(polyline);
             this.polylines.push(polyline);
         }
 
         // 添加标记点
         this.addMarkers();
-
+        
         // 自适应显示
         this.fitMapToRoute();
     }
 
     addMarkers() {
         const markers = this.routeData.markers_detail;
-
+        
         // 起点标记
         if (markers.start_point) {
-            const longitude = markers.start_point.coordinates.longitude;
-            const latitude = markers.start_point.coordinates.latitude;
-
-            if (isNaN(longitude) || isNaN(latitude)) {
-                console.error('❌ 无效的起点坐标:', longitude, latitude);
-            } else {
-                const startMarker = new AMap.Marker({
-                    position: [longitude, latitude],
-                    icon: this.createMarkerIcon('start'),
-                    title: markers.start_point.name,
-                    offset: new AMap.Pixel(-12, -24)
-                });
-
-                this.map.add(startMarker);
-                this.markers.push(startMarker);
-            }
+            const startMarker = new AMap.Marker({
+                position: [markers.start_point.coordinates.longitude, markers.start_point.coordinates.latitude],
+                icon: this.createMarkerIcon('start'),
+                title: markers.start_point.name,
+                offset: new AMap.Pixel(-12, -24)
+            });
+            
+            this.map.add(startMarker);
+            this.markers.push(startMarker);
         }
 
         // 途经点标记
         if (markers.waypoints) {
             markers.waypoints.forEach((waypoint, index) => {
-                const longitude = waypoint.coordinates.longitude;
-                const latitude = waypoint.coordinates.latitude;
-
-                if (isNaN(longitude) || isNaN(latitude)) {
-                    console.error(`❌ 无效的途经点坐标 (索引 ${index + 1}):`, longitude, latitude);
-                } else {
-                    const waypointMarker = new AMap.Marker({
-                        position: [longitude, latitude],
-                        icon: this.createMarkerIcon('waypoint', index + 1),
-                        title: waypoint.name,
-                        offset: new AMap.Pixel(-12, -24)
-                    });
-
-                    this.map.add(waypointMarker);
-                    this.markers.push(waypointMarker);
-                }
+                const waypointMarker = new AMap.Marker({
+                    position: [waypoint.coordinates.longitude, waypoint.coordinates.latitude],
+                    icon: this.createMarkerIcon('waypoint', index + 1),
+                    title: waypoint.name,
+                    offset: new AMap.Pixel(-12, -24)
+                });
+                
+                this.map.add(waypointMarker);
+                this.markers.push(waypointMarker);
             });
         }
 
         // 终点标记
         if (markers.end_point) {
-            const longitude = markers.end_point.coordinates.longitude;
-            const latitude = markers.end_point.coordinates.latitude;
-
-            if (isNaN(longitude) || isNaN(latitude)) {
-                console.error('❌ 无效的终点坐标:', longitude, latitude);
-            } else {
-                const endMarker = new AMap.Marker({
-                    position: [longitude, latitude],
-                    icon: this.createMarkerIcon('end'),
-                    title: markers.end_point.name,
-                    offset: new AMap.Pixel(-12, -24)
-                });
-
-                this.map.add(endMarker);
-                this.markers.push(endMarker);
-            }
+            const endMarker = new AMap.Marker({
+                position: [markers.end_point.coordinates.longitude, markers.end_point.coordinates.latitude],
+                icon: this.createMarkerIcon('end'),
+                title: markers.end_point.name,
+                offset: new AMap.Pixel(-12, -24)
+            });
+            
+            this.map.add(endMarker);
+            this.markers.push(endMarker);
         }
     }
 
     createMarkerIcon(type, number = null) {
         const size = type === 'waypoint' ? 30 : 36;
         let color, content;
-
+        
         switch (type) {
             case 'start':
                 color = '#28a745';
@@ -257,7 +221,7 @@ class NavigationSystem {
         // 清除标记
         this.markers.forEach(marker => this.map.remove(marker));
         this.markers = [];
-
+        
         // 清除路线
         this.polylines.forEach(polyline => this.map.remove(polyline));
         this.polylines = [];
@@ -292,7 +256,7 @@ class NavigationSystem {
 
     startLocationTracking() {
         console.log('📍 开始位置追踪...');
-
+        
         if (!navigator.geolocation) {
             console.warn('⚠️ 浏览器不支持定位功能');
             this.showMessage('浏览器不支持定位功能', 'warning');
@@ -328,7 +292,7 @@ class NavigationSystem {
 
     handleLocationUpdate(position) {
         const { longitude, latitude, accuracy } = position.coords;
-
+        
         this.userLocation = {
             longitude,
             latitude,
@@ -337,10 +301,10 @@ class NavigationSystem {
         };
 
         console.log('📍 位置更新:', this.userLocation);
-
+        
         // 更新用户位置标记
         this.updateUserMarker();
-
+        
         // 检查导航状态
         if (this.isNavigating && !this.isPaused) {
             this.checkNavigationProgress();
@@ -384,18 +348,18 @@ class NavigationSystem {
 
     startNavigation() {
         console.log('🚀 开始导航...');
-
+        
         this.isNavigating = true;
         this.isPaused = false;
         this.startTime = Date.now();
         this.currentStepIndex = 0;
-
+        
         // 更新UI
         this.updateNavigationUI();
-
+        
         // 语音提示
         this.speak('导航开始，请按照指示前进');
-
+        
         console.log('✅ 导航已启动');
     }
 
@@ -406,7 +370,7 @@ class NavigationSystem {
 
         const steps = this.routeData.navigation_details.step_by_step_navigation;
         const currentStep = steps[this.currentStepIndex];
-
+        
         if (!currentStep) {
             this.completeNavigation();
             return;
@@ -433,16 +397,16 @@ class NavigationSystem {
 
     nextStep() {
         const steps = this.routeData.navigation_details.step_by_step_navigation;
-
+        
         if (this.currentStepIndex < steps.length - 1) {
             this.currentStepIndex++;
             const nextStep = steps[this.currentStepIndex];
-
+            
             console.log(`➡️ 进入第${this.currentStepIndex + 1}步:`, nextStep.instruction);
-
+            
             // 语音播报
             this.speak(nextStep.instruction);
-
+            
             // 更新UI
             this.updateNavigationUI();
         } else {
@@ -452,17 +416,17 @@ class NavigationSystem {
 
     completeNavigation() {
         console.log('🎉 导航完成！');
-
+        
         this.isNavigating = false;
-
+        
         // 语音提示
         this.speak('恭喜您，已到达目的地！');
-
+        
         // 更新UI
         document.getElementById('step-instruction').textContent = '🎉 恭喜到达目的地！';
         document.getElementById('step-distance').textContent = '导航完成';
         document.getElementById('step-remaining').textContent = '感谢使用智能导航';
-
+        
         // 显示完成信息
         this.showMessage('导航完成！感谢使用智能散步导航', 'success');
     }
@@ -474,14 +438,14 @@ class NavigationSystem {
 
         const steps = this.routeData.navigation_details.step_by_step_navigation;
         const currentStep = steps[this.currentStepIndex];
-
+        
         if (!currentStep) {
             return;
         }
 
         // 更新当前步骤信息
         document.getElementById('step-instruction').textContent = currentStep.instruction;
-
+        
         // 计算距离信息
         if (this.userLocation) {
             const distanceToStep = this.calculateDistance(
@@ -490,13 +454,13 @@ class NavigationSystem {
                 currentStep.coordinates[0],
                 currentStep.coordinates[1]
             );
-
+            
             document.getElementById('step-distance').textContent = `距离: ${distanceToStep.toFixed(0)}米`;
         }
 
         // 更新进度信息
         this.updateProgressInfo();
-
+        
         // 更新路点状态
         this.updateWaypointStatus();
     }
@@ -524,7 +488,7 @@ class NavigationSystem {
         waypointsList.innerHTML = '';
 
         const markers = this.routeData.markers_detail;
-
+        
         // 起点
         if (markers.start_point) {
             const startItem = this.createWaypointItem(markers.start_point.name, 'start', 0);
@@ -549,10 +513,10 @@ class NavigationSystem {
     createWaypointItem(name, type, index) {
         const item = document.createElement('div');
         item.className = 'waypoint-item';
-
+        
         const icon = document.createElement('div');
         icon.className = `waypoint-icon waypoint-${type}`;
-
+        
         if (type === 'start') {
             icon.textContent = '起';
         } else if (type === 'end') {
@@ -578,7 +542,7 @@ class NavigationSystem {
 
         waypointItems.forEach((item, index) => {
             item.classList.remove('current', 'completed');
-
+            
             if (index < this.currentStepIndex) {
                 item.classList.add('completed');
             } else if (index === this.currentStepIndex) {
@@ -630,20 +594,20 @@ class NavigationSystem {
     togglePause() {
         this.isPaused = !this.isPaused;
         const pauseBtn = document.getElementById('pause-btn');
-
+        
         if (this.isPaused) {
             pauseBtn.innerHTML = '<i class="fas fa-play"></i> 继续';
         } else {
             pauseBtn.innerHTML = '<i class="fas fa-pause"></i> 暂停';
         }
-
+        
         console.log(this.isPaused ? '⏸️ 导航已暂停' : '▶️ 导航已继续');
     }
 
     toggleVoice() {
         this.voiceEnabled = !this.voiceEnabled;
         const voiceBtn = document.getElementById('voice-btn');
-
+        
         if (this.voiceEnabled) {
             voiceBtn.classList.remove('active');
             voiceBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
@@ -651,7 +615,7 @@ class NavigationSystem {
             voiceBtn.classList.add('active');
             voiceBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
         }
-
+        
         console.log(this.voiceEnabled ? '🔊 语音播报已开启' : '🔇 语音播报已关闭');
     }
 
@@ -667,9 +631,9 @@ class NavigationSystem {
     toggleCard() {
         const card = document.getElementById('nav-card');
         const minimizeBtn = document.getElementById('minimize-btn');
-
+        
         card.classList.toggle('hidden');
-
+        
         if (card.classList.contains('hidden')) {
             minimizeBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
         } else {
@@ -683,7 +647,7 @@ class NavigationSystem {
             if (this.watchId) {
                 navigator.geolocation.clearWatch(this.watchId);
             }
-
+            
             // 返回主页面
             window.location.href = './index.html';
         }
@@ -730,14 +694,14 @@ class NavigationSystem {
 // 页面加载完成后初始化导航系统
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 开始初始化导航页面...');
-
+    
     // 检查地图API是否已加载
     if (typeof AMap === 'undefined') {
         console.error('❌ 高德地图API未加载');
         alert('地图服务加载失败，请刷新页面重试');
         return;
     }
-
+    
     // 初始化导航系统
     window.navigationSystem = new NavigationSystem();
 });

@@ -1282,9 +1282,6 @@
         <button id="show-ai-process" class="map-control-btn">AI过程</button>
         <button id="export-route" class="map-control-btn">导出路线</button>
         <button id="toggle-dify" class="map-control-btn">AI问答</button>
-        <button id="navigate-btn" class="map-control-btn">
-            <i class="fas fa-compass"></i> 开始导航
-        </button>
     </div>
 
     <!-- 智能规划面板 -->
@@ -1893,71 +1890,6 @@
 
         // 初始化Dify API客户端
         const difyClient = new DifyAPIClient();
-
-        // 导航按钮点击事件
-        document.getElementById('navigate-btn').addEventListener('click', function() {
-            window.location.href = 'navigation.html';
-            // 检查是否有已规划的路线数据
-            const routeData = localStorage.getItem('current_route_data');
-            console.log('🔍 检查路线数据:', routeData ? '存在' : '不存在');
-            
-            if (routeData && routeData !== 'null' && routeData !== '') {
-                try {
-                    // 验证数据是否为有效的JSON
-                    const parsedData = JSON.parse(routeData);
-                    if (parsedData && parsedData.route_summary) {
-                        console.log('✅ 路线数据有效，跳转到导航页面');
-                        window.location.href = 'navigation.html';
-                    } else {
-                        console.warn('⚠️ 路线数据格式无效');
-                        showTemporaryMessage('路线数据格式无效，请重新规划路线', 'warning');
-                    }
-                } catch (error) {
-                    console.error('❌ 路线数据解析失败:', error);
-                    showTemporaryMessage('路线数据损坏，请重新规划路线', 'error');
-                }
-            } else {
-                // 如果没有路线数据，提示用户先规划路线
-                console.log('⚠️ 没有找到有效的路线数据');
-                showTemporaryMessage('请先规划一条路线再开始导航', 'warning');
-            }
-        });
-
-        // 临时消息显示函数
-        function showTemporaryMessage(message, type = 'info') {
-            const messageElement = document.createElement('div');
-            messageElement.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 12px 20px;
-                border-radius: 8px;
-                color: white;
-                font-weight: 500;
-                z-index: 9999;
-                animation: slideInRight 0.3s ease-out;
-                max-width: 300px;
-            `;
-
-            const colors = {
-                error: '#dc3545',
-                success: '#28a745',
-                info: '#17a2b8',
-                warning: '#ffc107'
-            };
-
-            messageElement.style.background = colors[type] || colors.info;
-            messageElement.textContent = message;
-
-            document.body.appendChild(messageElement);
-
-            // 3秒后自动删除
-            setTimeout(() => {
-                if (messageElement.parentNode) {
-                    messageElement.parentNode.removeChild(messageElement);
-                }
-            }, 3000);
-        }
     </script>
 </body>
 </html> 
