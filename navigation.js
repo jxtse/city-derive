@@ -45,13 +45,29 @@ class NavigationSystem {
     async loadRouteData() {
         try {
             console.log('📄 加载路线数据...');
-            const response = await fetch('./detailed_walking_route_1753535070950.json');
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: 无法加载路线数据`);
-            }
             
-            this.routeData = await response.json();
-            console.log('✅ 路线数据加载成功:', this.routeData);
+            // 首先尝试从localStorage加载路线数据
+            const localRouteData = localStorage.getItem('current_route_data');
+            
+            if (localRouteData && localRouteData !== 'null') {
+                try {
+                    this.routeData = JSON.parse(localRouteData);
+                    console.log('✅ 从localStorage加载路线数据成功:', this.routeData);
+                } catch (parseError) {
+                    console.warn('⚠️ localStorage中的路线数据格式错误，尝试加载默认文件');
+                    throw new Error('本地路线数据格式错误');
+                }
+            } else {
+                console.log('📁 localStorage中没有路线数据，尝试加载默认文件...');
+                // 如果localStorage中没有数据，尝试加载默认文件
+                const response = await fetch('./detailed_walking_route_1753535070950.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: 无法加载路线数据`);
+                }
+                
+                this.routeData = await response.json();
+                console.log('✅ 从文件加载路线数据成功:', this.routeData);
+            }
             
             // 计算总距离
             this.totalDistance = this.routeData.route_summary?.total_distance_meters || 0;

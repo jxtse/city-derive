@@ -1899,11 +1899,26 @@
             // 检查是否有已规划的路线数据
             const routeData = localStorage.getItem('current_route_data');
             
-            if (routeData) {
-                // 如果有路线数据，直接跳转到导航页面
-                window.location.href = 'navigation.html';
+            console.log('🔍 检查路线数据:', routeData ? '存在' : '不存在');
+            
+            if (routeData && routeData !== 'null' && routeData !== '') {
+                try {
+                    // 验证数据是否为有效的JSON
+                    const parsedData = JSON.parse(routeData);
+                    if (parsedData && parsedData.route_summary) {
+                        console.log('✅ 路线数据有效，跳转到导航页面');
+                        window.location.href = 'navigation.html';
+                    } else {
+                        console.warn('⚠️ 路线数据格式无效');
+                        showTemporaryMessage('路线数据格式无效，请重新规划路线', 'warning');
+                    }
+                } catch (error) {
+                    console.error('❌ 路线数据解析失败:', error);
+                    showTemporaryMessage('路线数据损坏，请重新规划路线', 'error');
+                }
             } else {
                 // 如果没有路线数据，提示用户先规划路线
+                console.log('⚠️ 没有找到有效的路线数据');
                 showTemporaryMessage('请先规划一条路线再开始导航', 'warning');
             }
         });
