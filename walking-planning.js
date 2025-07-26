@@ -4142,4 +4142,4 @@ function addQuickRouteMarkers(startPoint, endPoint) {
 }
 
 // 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', initializeApp); 
+document.addEventListener('DOMContentLoaded', initializeApp);
