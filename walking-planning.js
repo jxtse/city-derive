@@ -4334,8 +4334,8 @@ function initializeApp() {
     }
 }
 
-// 探索模式功能
-function startExploreMode() {
+// 探索模式功能 - 确保全局可用
+window.startExploreMode = function startExploreMode() {
     console.log('🧭 启动探索模式...');
     
     // 检查地图是否已初始化
