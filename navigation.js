@@ -562,38 +562,20 @@ class NavigationApp {
             <path d="M12 2C13.1046 2 14 2.89543 14 4V6.17071C16.1652 6.58254 17.8348 8.25212 18.2471 10.4173L20.4173 10.2471C21.5218 10.1652 22 11.1046 22 12C22 12.8954 21.5218 13.8348 20.4173 13.7529L18.2471 13.5827C17.8348 15.7479 16.1652 17.4175 14 17.8293V20C14 21.1046 13.1046 22 12 22C10.8954 22 10 21.1046 10 20V17.8293C7.83484 17.4175 6.16518 15.7479 5.75289 13.5827L3.58268 13.7529C2.47818 13.8348 2 12.8954 2 12C2 11.1046 2.47818 10.1652 3.58268 10.2471L5.75289 10.4173C6.16518 8.25212 7.83484 6.58254 10 6.17071V4C10 2.89543 10.8954 2 12 2Z" fill="white"/>
         </svg>`;
 
-        // 更新指令内容，按照设计图布局
+        // 更新指令内容，按照设计图布局 - 居中对齐
         instructionArea.innerHTML = `
-            <div style="display: flex; align-items: flex-start; gap: 16px;">
-                <div style="width: 48px; height: 48px; background: #8BC34A; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
-                    ${navigationIcon}
-                </div>
-                <div style="flex: 1; padding-top: 2px;">
-                    <div style="font-weight: 600; color: #333; font-size: 18px; margin-bottom: 8px;">
-                        跟随指令：
+            <div style="text-align: center;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px;">
+                    <div style="width: 32px; height: 32px; background: #8BC34A; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        ${navigationIcon}
                     </div>
-                    <div style="color: #333; font-size: 16px; line-height: 1.5;">
-                        ${nextAction || '正在为您准备相关信息...'}
+                    <div style="font-weight: 600; color: #333; font-size: 18px;">
+                        跟随指令
                     </div>
                 </div>
-                <button onclick="navigationApp.hidePersistentInstruction()" style="
-                    background: #E0E0E0; 
-                    border: none; 
-                    width: 28px; 
-                    height: 28px; 
-                    border-radius: 50%; 
-                    font-size: 16px; 
-                    color: #666; 
-                    cursor: pointer; 
-                    display: flex; 
-                    align-items: center; 
-                    justify-content: center; 
-                    transition: all 0.2s ease; 
-                    flex-shrink: 0;
-                    margin-top: 2px;
-                ">
-                    ×
-                </button>
+                <div style="color: #333; font-size: 16px; line-height: 1.5; text-align: left;">
+                    ${nextAction || '正在为您准备相关信息...'}
+                </div>
             </div>
         `;
 
