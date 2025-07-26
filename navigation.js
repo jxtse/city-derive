@@ -218,9 +218,6 @@ class NavigationApp {
 
         try {
             console.log('🤖 调用Dify AI分析位置...');
-            
-            // 显示加载状态
-            this.showLoadingInBubble();
 
             const locationDescription = this.currentPOIDetails ? 
                 `${this.currentPOIDetails.name} - ${this.currentPOIDetails.address}` : 
@@ -239,7 +236,7 @@ class NavigationApp {
                         poi_address: this.currentPOIDetails ? this.currentPOIDetails.address : '',
                         poi_type: this.currentPOIDetails ? (this.currentPOIDetails.type || '') : '',
                         user_coordinates: JSON.stringify(this.userLocation),
-                        request_type: 'follow_up_analysis'
+                        request_type: 'initial_analysis'
                     },
                     response_mode: "blocking",
                     user: `navigation-user-${Date.now()}`
@@ -262,7 +259,7 @@ class NavigationApp {
                     // 验证数据格式
                     if (taskOutput.question && taskOutput.choices && Array.isArray(taskOutput.choices)) {
                         this.updateAIBubble(taskOutput);
-                        console.log('✅ AI建议已重新生成并显示');
+                        console.log('✅ 真实Dify API数据已显示');
                     } else {
                         throw new Error('API返回的数据格式不符合预期');
                     }
@@ -276,8 +273,8 @@ class NavigationApp {
         } catch (error) {
             console.error('❌ Dify AI分析失败:', error);
             this.showMessage('AI分析服务暂时不可用，请稍后重试', 'error');
-            // 显示重试按钮而不是隐藏AI气泡
-            this.resetAIBubble();
+            // 隐藏AI气泡，不显示硬编码内容
+            this.hideAIBubble();
         }
     }
 
@@ -417,8 +414,7 @@ class NavigationApp {
     
     retryDifyAnalysis() {
         console.log('🔄 重新尝试Dify AI分析');
-        // 显示AI气泡并开始分析
-        this.showAIBubble();
+        this.showLoadingInBubble();
         this.analyzeLocationWithDify();
     }
 
@@ -435,14 +431,8 @@ class NavigationApp {
             this.cachedNextOptions = null; // 清空缓存
         } else {
             console.log('⚠️ 没有缓存的选项，重新获取AI建议');
-            // 检查是否有位置信息
-            if (this.userLocation) {
-                // 重新获取当前位置的POI和AI建议
-                this.analyzeLocationWithDify();
-            } else {
-                // 如果没有位置信息，重新获取位置
-                this.getUserLocation();
-            }
+            // 直接重新获取AI建议，不显示中间状态
+            this.retryDifyAnalysis();
         }
     }
 
@@ -510,14 +500,40 @@ class NavigationApp {
     }
 
     updateAIBubbleWithSelection(selectedOption, nextAction) {
-        // 隐藏AI对话气泡
-        this.hideAIBubble();
-        
         // 创建或更新常驻指令信息区域
         this.createPersistentInstructionArea(selectedOption, nextAction);
-        
-        // 在页面底部显示已完成按钮
-        this.createBottomCompleteButton();
+
+        const questionElement = document.getElementById('ai-question');
+        const optionsContainer = document.getElementById('options-container');
+
+        // 更新问题显示为选择结果（简化版）
+        questionElement.innerHTML = `
+            <div style="color: #10b981; font-weight: 600; font-size: 15px;">
+                ✅ 您选择了：${selectedOption}
+            </div>
+        `;
+
+        // 显示已完成按钮，而不是显示加载状态
+        optionsContainer.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+                <div style="color: #374151; font-size: 14px; margin-bottom: 16px;">
+                    🎯 请按照上方指令完成此步骤
+                </div>
+                <button onclick="navigationApp.markStepAsCompleted()" style="
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+                ">
+                    ✅ 已完成
+                </button>
+            </div>
+        `;
     }
 
     createPersistentInstructionArea(selectedOption, nextAction) {
@@ -571,52 +587,12 @@ class NavigationApp {
 
         // 显示指令区域
         instructionArea.style.display = 'block';
-    }
 
-    createBottomCompleteButton() {
-        // 检查是否已存在底部按钮
-        let bottomButton = document.getElementById('bottom-complete-button');
-
-        if (!bottomButton) {
-            // 创建底部完成按钮
-            bottomButton = document.createElement('div');
-            bottomButton.id = 'bottom-complete-button';
-            bottomButton.style.cssText = `
-                position: fixed;
-                bottom: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 1001;
-                display: none;
-                animation: slideUp 0.4s ease-out;
-            `;
-
-            document.body.appendChild(bottomButton);
+        // 调整AI气泡位置，避免重叠
+        const aiChatBubble = document.getElementById('ai-chat-bubble');
+        if (aiChatBubble) {
+            aiChatBubble.style.top = '120px'; // 给常驻指令区域留出空间
         }
-
-        // 更新按钮内容
-        bottomButton.innerHTML = `
-            <button onclick="navigationApp.markStepAsCompleted()" style="
-                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                color: white;
-                border: none;
-                padding: 16px 32px;
-                border-radius: 16px;
-                font-weight: 600;
-                font-size: 16px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            ">
-                ✅ 已完成
-            </button>
-        `;
-
-        // 显示按钮
-        bottomButton.style.display = 'block';
     }
 
     hidePersistentInstruction() {
@@ -625,10 +601,10 @@ class NavigationApp {
             instructionArea.style.display = 'none';
         }
 
-        // 隐藏底部完成按钮
-        const bottomButton = document.getElementById('bottom-complete-button');
-        if (bottomButton) {
-            bottomButton.style.display = 'none';
+        // 恢复AI气泡位置
+        const aiChatBubble = document.getElementById('ai-chat-bubble');
+        if (aiChatBubble) {
+            aiChatBubble.style.top = '60px';
         }
     }
 
