@@ -542,12 +542,11 @@ class NavigationApp {
                 top: 20px;
                 left: 50%;
                 transform: translateX(-50%);
-                max-width: 600px;
+                max-width: 580px;
                 width: calc(100% - 40px);
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(20px);
-                border-radius: 20px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                background: #F8F9FA;
+                border-radius: 24px;
+                box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
                 border: 2px solid #8BC34A;
                 z-index: 1001;
                 padding: 20px 24px;
@@ -558,37 +557,41 @@ class NavigationApp {
             document.body.appendChild(instructionArea);
         }
 
-        // 创建导航SVG图标
-        const navigationIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none">
-            <g filter="url(#filter0_d_88_1078)">
-                <path d="M34.2845 19.0847L31.1145 18.2925C30.7544 15.9233 29.6462 13.7312 27.9516 12.0367C26.2571 10.3421 24.065 9.23384 21.6958 8.8738L20.9035 5.70962C20.8527 5.5069 20.7357 5.32696 20.5709 5.1984C20.4061 5.06983 20.2031 5 19.9941 5C19.7851 5 19.5822 5.06983 19.4174 5.1984C19.2526 5.32696 19.1355 5.5069 19.0847 5.70962L18.2925 8.87966C15.9233 9.2397 13.7312 10.348 12.0367 12.0425C10.3421 13.7371 9.23384 15.9291 8.8738 18.2984L5.70962 19.0906C5.5069 19.1414 5.32696 19.2585 5.1984 19.4232C5.06983 19.588 5 19.791 5 20C5 20.209 5.06983 20.412 5.1984 20.5768C5.32696 20.7415 5.5069 20.8586 5.70962 20.9094L8.87966 21.7016C9.2397 24.0709 10.348 26.2629 12.0425 27.9575C13.7371 29.652 15.9291 30.7603 18.2984 31.1203L19.0906 34.2904C19.1414 34.4931 19.2585 34.673 19.4232 34.8016C19.588 34.9302 19.791 35 20 35C20.209 35 20.412 34.9302 20.5768 34.8016C20.7415 34.673 20.8586 34.4931 20.9094 34.2904L21.7016 31.1203C24.0709 30.7603 26.2629 29.652 27.9575 27.9575C29.652 26.2629 30.7603 24.0709 31.1203 21.7016L34.2904 20.9094C34.4931 20.8586 34.673 20.7415 34.8016 20.5768C34.9302 20.412 35 20.209 35 20C35 19.791 34.9302 19.588 34.8016 19.4232C34.673 19.2585 34.4931 19.1414 34.2904 19.0906L34.2845 19.0847ZM29.1082 17.7956L23.5802 16.4081L22.1973 10.8801C23.8741 11.2837 25.4067 12.1426 26.6262 13.3621C27.8457 14.5816 28.7046 16.1142 29.1082 17.7909V17.7956ZM17.7909 10.8813L16.4081 16.4081L10.8801 17.7909C11.2837 16.1142 12.1426 14.5816 13.3621 13.3621C14.5816 12.1426 16.1142 11.2837 17.7909 10.8801V10.8813ZM10.8766 22.1985L16.4081 23.5802L17.7909 29.1082C16.1142 28.7046 14.5816 27.8457 13.3621 26.6262C12.1426 25.4067 11.2837 23.8741 10.8801 22.1973L10.8766 22.1985ZM22.1938 29.1128L23.5767 23.5849L29.1046 22.202C28.7006 23.8775 27.8419 25.4088 26.6231 26.6274C25.4043 27.8459 23.8728 28.7044 22.1973 29.1082L22.1938 29.1128Z" fill="#8BCA4E"/>
-            </g>
-            <defs>
-                <filter id="filter0_d_88_1078" x="0" y="0" width="40" height="40" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                    <feFlood flood-opacity="0" result="BackgroundImageFix"/>
-                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-                    <feOffset/>
-                    <feGaussianBlur stdDeviation="2.5"/>
-                    <feComposite in2="hardAlpha" operator="out"/>
-                    <feColorMatrix type="matrix" values="0 0 0 0 0.819608 0 0 0 0 0.917647 0 0 0 0 0.721569 0 0 0 0.5 0"/>
-                    <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_88_1078"/>
-                    <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_88_1078" result="shape"/>
-                </filter>
-            </defs>
+        // 创建简化的导航图标
+        const navigationIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C13.1046 2 14 2.89543 14 4V6.17071C16.1652 6.58254 17.8348 8.25212 18.2471 10.4173L20.4173 10.2471C21.5218 10.1652 22 11.1046 22 12C22 12.8954 21.5218 13.8348 20.4173 13.7529L18.2471 13.5827C17.8348 15.7479 16.1652 17.4175 14 17.8293V20C14 21.1046 13.1046 22 12 22C10.8954 22 10 21.1046 10 20V17.8293C7.83484 17.4175 6.16518 15.7479 5.75289 13.5827L3.58268 13.7529C2.47818 13.8348 2 12.8954 2 12C2 11.1046 2.47818 10.1652 3.58268 10.2471L5.75289 10.4173C6.16518 8.25212 7.83484 6.58254 10 6.17071V4C10 2.89543 10.8954 2 12 2Z" fill="white"/>
         </svg>`;
 
-        // 更新指令内容
+        // 更新指令内容，按照设计图布局
         instructionArea.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="width: 48px; height: 48px; background: #8BC34A; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 2px 8px rgba(139, 195, 74, 0.3);">
+            <div style="display: flex; align-items: flex-start; gap: 16px;">
+                <div style="width: 48px; height: 48px; background: #8BC34A; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
                     ${navigationIcon}
                 </div>
-                <div style="flex: 1;">
-                    <div style="font-weight: 600; color: #2E2E2E; font-size: 18px; line-height: 1.4; margin: 0;">
-                        跟随指令：${nextAction || '正在为您准备相关信息...'}
+                <div style="flex: 1; padding-top: 2px;">
+                    <div style="font-weight: 600; color: #333; font-size: 18px; margin-bottom: 8px;">
+                        跟随指令：
+                    </div>
+                    <div style="color: #333; font-size: 16px; line-height: 1.5;">
+                        ${nextAction || '正在为您准备相关信息...'}
                     </div>
                 </div>
-                <button onclick="navigationApp.hidePersistentInstruction()" style="background: rgba(0, 0, 0, 0.1); border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; flex-shrink: 0;">
+                <button onclick="navigationApp.hidePersistentInstruction()" style="
+                    background: #E0E0E0; 
+                    border: none; 
+                    width: 28px; 
+                    height: 28px; 
+                    border-radius: 50%; 
+                    font-size: 16px; 
+                    color: #666; 
+                    cursor: pointer; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    transition: all 0.2s ease; 
+                    flex-shrink: 0;
+                    margin-top: 2px;
+                ">
                     ×
                 </button>
             </div>
