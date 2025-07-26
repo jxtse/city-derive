@@ -3,7 +3,7 @@
 export const CONFIG = {
     // 高德地图配置
     AMAP: {
-        KEY: 'c9e4a3040fef05c4084a21c8a357d37f',
+        KEY: process.env.AMAP_API_KEY || 'c9e4a3040fef05c4084a21c8a357d37f',
         BASE_URL: 'https://restapi.amap.com/v3'
     },
     
