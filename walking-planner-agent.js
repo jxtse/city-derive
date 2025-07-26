@@ -871,16 +871,21 @@ async function handlePlanningForm(event) {
     submitButton.innerHTML = '<i class="fas fa-brain fa-spin"></i> AI智能规划中...';
 
     try {
-        const initStepId = uiController.updatePlanningStatus('🤖 AI正在深度分析您的需求...', 'loading', 
+        uiController.updatePlanningStatus('🤖 AI正在深度分析您的需求...', 'loading', 
             '正在启动智能代理，准备调用地图API', 
             { step: 1, action: '初始化AI智能代理', result: 'running' }
         );
 
+        // 延迟显示启动成功状态
         setTimeout(() => {
-            uiController.updateStepStatus(initStepId, 'completed', '✅ AI智能代理启动成功');
+            uiController.updatePlanningStatus('✅ AI智能代理启动成功', 'success', 
+                'AI智能代理已准备就绪，开始分析需求', 
+                { step: 2, action: '开始智能路线规划', result: 'running' }
+            );
         }, 1000);
 
         const result = await routeService.planRoute(preferences.startLocation, preferences.city, preferences);
+        console.log('✅ AI规划完成，结果:', result);
 
         uiController.updatePlanningStatus('✅ AI智能规划完成！', 'success', 
             `AI经过${result.technical_info?.planning_steps?.length || '多'}轮分析生成最优路线`,

@@ -75,17 +75,29 @@ export class MapService {
             this.clearMap();
             this.currentRoute = routeResult;
             
-            const waypoints = this._buildWaypoints(routeResult);
-            this._addMarkers(waypoints);
-            this._addTemporaryPath(waypoints);
-            this._fitMapView();
+            // 验证routeResult结构
+            if (!routeResult || !routeResult.route) {
+                console.error('❌ 路线结果数据结构无效:', routeResult);
+                return;
+            }
             
-            // 异步获取真实路径
-            this._loadRealPaths(waypoints);
+            const waypoints = this._buildWaypoints(routeResult);
+            
+            if (waypoints && waypoints.length > 0) {
+                this._addMarkers(waypoints);
+                this._addTemporaryPath(waypoints);
+                this._fitMapView();
+                
+                // 异步获取真实路径
+                this._loadRealPaths(waypoints);
+            } else {
+                console.warn('⚠️ 没有有效的路径点可显示');
+            }
             
         } catch (error) {
             console.error('❌ 更新地图显示失败:', error);
-            DOMUtils.showMessage('地图更新失败', 'error');
+            console.error('Error details:', error.message, error.stack);
+            DOMUtils.showMessage('地图更新失败: ' + error.message, 'error');
         }
     }
     
@@ -119,35 +131,60 @@ export class MapService {
     _buildWaypoints(routeResult) {
         const waypoints = [];
         
-        // 添加起点
-        waypoints.push({
-            ...routeResult.route.start_point,
-            type: 'start',
-            name: routeResult.route.start_point.formatted_address || '起点'
-        });
-        
-        // 添加途经点
-        if (routeResult.route.waypoints) {
-            routeResult.route.waypoints.forEach(waypoint => {
-                waypoints.push({
-                    ...waypoint,
-                    type: 'waypoint',
-                    longitude: waypoint.location?.[0] || waypoint.longitude,
-                    latitude: waypoint.location?.[1] || waypoint.latitude
+        try {
+            // 验证并添加起点
+            if (routeResult.route.start_point) {
+                const startPoint = {
+                    ...routeResult.route.start_point,
+                    type: 'start',
+                    name: routeResult.route.start_point.formatted_address || 
+                           routeResult.route.start_point.name || '起点'
+                };
+                waypoints.push(startPoint);
+            }
+            
+            // 添加途经点
+            if (routeResult.route.waypoints && Array.isArray(routeResult.route.waypoints)) {
+                routeResult.route.waypoints.forEach(waypoint => {
+                    if (waypoint) {
+                        waypoints.push({
+                            ...waypoint,
+                            type: 'waypoint',
+                            longitude: waypoint.location?.[0] || waypoint.longitude,
+                            latitude: waypoint.location?.[1] || waypoint.latitude,
+                            name: waypoint.name || '途经点'
+                        });
+                    }
                 });
+            }
+            
+            // 验证并添加终点
+            if (routeResult.route.end_point) {
+                const endPoint = {
+                    ...routeResult.route.end_point,
+                    type: 'end',
+                    name: routeResult.route.end_point.name || 
+                           routeResult.route.end_point.formatted_address || '终点'
+                };
+                waypoints.push(endPoint);
+            }
+            
+            // 过滤有效坐标
+            const validWaypoints = waypoints.filter(wp => {
+                const isValid = GeoUtils.isValidCoordinate(wp.longitude, wp.latitude);
+                if (!isValid) {
+                    console.warn('⚠️ 无效坐标的路径点:', wp);
+                }
+                return isValid;
             });
+            
+            console.log('📍 构建的有效路径点:', validWaypoints.length, validWaypoints);
+            return validWaypoints;
+            
+        } catch (error) {
+            console.error('❌ 构建路径点失败:', error);
+            return [];
         }
-        
-        // 添加终点
-        waypoints.push({
-            ...routeResult.route.end_point,
-            type: 'end',
-            name: routeResult.route.end_point.name || '终点'
-        });
-        
-        return waypoints.filter(wp => 
-            GeoUtils.isValidCoordinate(wp.longitude, wp.latitude)
-        );
     }
     
     // 私有方法：添加标记
