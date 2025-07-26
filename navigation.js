@@ -637,6 +637,12 @@ class NavigationApp {
 
     updateLocationDisplay(customText = null) {
         const locationText = document.getElementById('location-text');
+        
+        // 如果底部控制栏已被移除，不进行位置显示更新
+        if (!locationText) {
+            console.log('📍 位置显示元素不存在，跳过更新');
+            return;
+        }
 
         if (customText) {
             locationText.textContent = customText;
