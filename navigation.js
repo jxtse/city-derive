@@ -36,6 +36,7 @@ class NavigationApp {
 
             this.map = new AMap.Map('map', {
                 zoom: 16,
+                zoomEnable: false,
                 center: [120.007986, 30.293312], // 默认湖畔创研中心
                 features: ['bg', "road", "building"], 
                 mapStyle: 'amap://styles/macaron',
