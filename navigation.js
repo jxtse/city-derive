@@ -567,41 +567,6 @@ class NavigationApp {
         }
     }
 
-    showWaterFeatureInfo() {
-        console.log('🌊 显示水景特色信息');
-        setTimeout(() => {
-            this.showMessage('💧 水景特色：湖畔创研中心前的人工水池采用现代设计理念，营造宁静的办公氛围', 'info');
-        }, 1000);
-    }
-
-    showArtInstallationInfo() {
-        console.log('🎨 显示艺术装置信息');
-        setTimeout(() => {
-            this.showMessage('🎨 艺术元素：现代雕塑与建筑完美融合，体现创新与传统的平衡', 'info');
-        }, 1000);
-    }
-
-    showArchitecturalFeatureInfo() {
-        console.log('🏢 显示建筑特色信息');
-        setTimeout(() => {
-            this.showMessage('🏢 建筑特色：醒目的色彩搭配彰显现代商务风格，增强视觉识别度', 'info');
-        }, 1000);
-    }
-
-    showGreenLandscapeInfo() {
-        console.log('🌿 显示绿化景观信息');
-        setTimeout(() => {
-            this.showMessage('🌿 绿化景观：精心设计的景观绿化提供舒适的工作环境和休憩空间', 'info');
-        }, 1000);
-    }
-
-    showGenericActionInfo(option, action) {
-        console.log(`📋 显示通用动作信息: ${option} -> ${action}`);
-        setTimeout(() => {
-            this.showMessage(`🔍 ${action}`, 'info');
-        }, 1000);
-    }
-
     updateLocationDisplay(customText = null) {
         const locationText = document.getElementById('location-text');
 
