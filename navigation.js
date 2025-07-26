@@ -7,6 +7,7 @@ class NavigationApp {
         this.apiKey = 'c9e4a3040fef05c4084a21c8a357d37f';
         this.difyApiToken = 'app-66AeBLjLKMIYEsb5ufu0h8Ch';
         this.difyBaseUrl = 'https://api.dify.ai/v1';
+        this.cachedNextOptions = null; // 缓存下一轮选项
 
         this.init();
     }
@@ -277,7 +278,7 @@ class NavigationApp {
         }
     }
 
-    async getNextOptionsFromDify(selectedOption, selectedAction) {
+    async getNextOptionsFromDify(selectedOption, selectedAction, shouldDisplay = true) {
         try {
             console.log('🔄 获取下一轮选项...', selectedOption, selectedAction);
 
@@ -293,8 +294,10 @@ class NavigationApp {
                 user_coordinates: this.userLocation
             };
 
-            // 显示加载状态
-            this.showLoadingInBubble();
+            // 只有在需要显示时才显示加载状态
+            if (shouldDisplay) {
+                this.showLoadingInBubble();
+            }
 
             const response = await fetch(`${this.difyBaseUrl}/workflows/run`, {
                 method: 'POST',
@@ -328,23 +331,36 @@ class NavigationApp {
             if (result.data && result.data.outputs && result.data.outputs.task_output) {
                 try {
                     const taskOutput = JSON.parse(result.data.outputs.task_output);
-                    this.updateAIBubble(taskOutput);
-                    console.log('✅ 成功获取下一轮选项从Dify API');
+                    
+                    if (shouldDisplay) {
+                        this.updateAIBubble(taskOutput);
+                        console.log('✅ 成功获取下一轮选项从Dify API');
+                    } else {
+                        // 将结果缓存起来，等待用户点击"已完成"按钮
+                        this.cachedNextOptions = taskOutput;
+                        console.log('✅ 下一轮选项已缓存，等待用户完成当前任务');
+                    }
                 } catch (parseError) {
                     console.error('❌ 解析Dify API响应失败:', parseError);
-                    this.showMessage('AI响应格式错误，请重新选择', 'error');
-                    this.resetAIBubble();
+                    if (shouldDisplay) {
+                        this.showMessage('AI响应格式错误，请重新选择', 'error');
+                        this.resetAIBubble();
+                    }
                 }
             } else {
                 console.error('❌ Dify API返回格式不正确');
-                this.showMessage('AI服务响应异常，请重新选择', 'error');
-                this.resetAIBubble();
+                if (shouldDisplay) {
+                    this.showMessage('AI服务响应异常，请重新选择', 'error');
+                    this.resetAIBubble();
+                }
             }
 
         } catch (error) {
             console.error('❌ 获取下一轮选项失败:', error);
-            this.showMessage('网络连接失败，请检查网络后重试', 'error');
-            this.resetAIBubble();
+            if (shouldDisplay) {
+                this.showMessage('网络连接失败，请检查网络后重试', 'error');
+                this.resetAIBubble();
+            }
         }
     }
 
@@ -400,6 +416,50 @@ class NavigationApp {
         console.log('🔄 重新尝试Dify AI分析');
         this.showLoadingInBubble();
         this.analyzeLocationWithDify();
+    }
+
+    markStepAsCompleted() {
+        console.log('✅ 用户标记步骤为已完成');
+        
+        // 隐藏常驻指令
+        this.hidePersistentInstruction();
+        
+        // 检查是否有缓存的下一轮选项
+        if (this.cachedNextOptions) {
+            console.log('📋 显示缓存的下一轮选项');
+            this.updateAIBubble(this.cachedNextOptions);
+            this.cachedNextOptions = null; // 清空缓存
+        } else {
+            console.log('⚠️ 没有缓存的选项，显示默认状态');
+            const questionElement = document.getElementById('ai-question');
+            const optionsContainer = document.getElementById('options-container');
+            
+            questionElement.innerHTML = `
+                <div style="color: #10b981; font-weight: 600; font-size: 15px;">
+                    🎉 任务完成！
+                </div>
+            `;
+            
+            optionsContainer.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="color: #374151; font-size: 14px; margin-bottom: 16px;">
+                        您已完成当前步骤
+                    </div>
+                    <button onclick="navigationApp.retryDifyAnalysis()" style="
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        border: none;
+                        padding: 12px 24px;
+                        border-radius: 12px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    ">
+                        🔄 获取新的AI建议
+                    </button>
+                </div>
+            `;
+        }
     }
 
     updateAIBubble(data) {
@@ -458,10 +518,8 @@ class NavigationApp {
         // 更新AI气泡显示选择结果和下一步动作
         this.updateAIBubbleWithSelection(option, action);
 
-        // 1.5秒后调用Dify API获取下一轮选项
-        setTimeout(() => {
-            this.getNextOptionsFromDify(option, action);
-        }, 1500);
+        // 后台获取下一轮选项，但不立即显示
+        this.getNextOptionsFromDify(option, action, false);
 
         // 执行相应的动作
         this.handleUserChoice(option, action);
@@ -481,13 +539,25 @@ class NavigationApp {
             </div>
         `;
 
-        // 清空选项容器，显示确认信息
+        // 显示已完成按钮，而不是显示加载状态
         optionsContainer.innerHTML = `
-            <div style="text-align: center; padding: 16px; background: rgba(16, 185, 129, 0.1); border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
-                <div style="color: #10b981; font-size: 16px; margin-bottom: 4px;">🎯</div>
-                <div style="color: #374151; font-size: 14px; font-weight: 500;">
-                    正在为您分析相关信息...
+            <div style="text-align: center; padding: 20px;">
+                <div style="color: #374151; font-size: 14px; margin-bottom: 16px;">
+                    🎯 请按照上方指令完成此步骤
                 </div>
+                <button onclick="navigationApp.markStepAsCompleted()" style="
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+                ">
+                    ✅ 已完成
+                </button>
             </div>
         `;
     }
