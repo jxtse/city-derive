@@ -612,6 +612,7 @@ class NavigationApp {
         completionButton.innerHTML = `
             <button onclick="navigationApp.markStepAsCompleted()" style="
                 background: white;
+                border: none;
                 padding: 14px 28px;
                 border-radius: 25px;
                 font-weight: 600;
