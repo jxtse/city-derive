@@ -38,11 +38,23 @@ class NavigationApp {
                 viewMode: '2D'
             });
 
-            // 添加地图控件
-            this.map.addControl(new AMap.Scale());
-            this.map.addControl(new AMap.ToolBar({
-                position: 'RT'
-            }));
+            // 添加地图控件 - 使用兼容方式
+            try {
+                // 比例尺控件
+                const scale = new AMap.Scale({
+                    position: 'LB'
+                });
+                this.map.addControl(scale);
+                
+                // 工具条控件
+                const toolbar = new AMap.ToolBar({
+                    position: 'RT'
+                });
+                this.map.addControl(toolbar);
+            } catch (controlError) {
+                console.warn('⚠️ 地图控件加载失败，使用基础地图功能:', controlError);
+                // 如果控件加载失败，仍可以使用基础地图功能
+            }
 
             console.log('✅ 地图初始化完成');
         } catch (error) {
