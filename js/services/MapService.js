@@ -1,7 +1,6 @@
 
 import { CONFIG, ICON_TYPES } from '../utils/constants.js';
 import { DOMUtils, GeoUtils } from '../utils/helpers.js';
-import { GeolocationService } from '../utils/geolocation.js';
 
 export class MapService {
     constructor() {
@@ -9,9 +8,6 @@ export class MapService {
         this.markers = [];
         this.polyline = null;
         this.currentRoute = null;
-        this.geolocationService = new GeolocationService();
-        this.userLocationMarker = null;
-        this._isRequestingLocation = false; // 防止重复请求定位的标志
     }
     
     // 初始化地图
@@ -49,8 +45,6 @@ export class MapService {
                 console.log('✅ 地图加载完成');
                 this._addMapControls();
                 this._optimizeCanvasPerformance();
-                // 自动获取用户位置
-                this._requestUserLocation();
             });
             
             this.map.on('error', (error) => {
@@ -103,8 +97,6 @@ export class MapService {
             this.map.remove(this.polyline);
             this.polyline = null;
         }
-        
-        // 不清除用户位置标记
     }
     
     // 重置地图
@@ -457,206 +449,5 @@ export class MapService {
                 </div>
             `;
         }
-    }
-
-    // 私有方法：请求用户位置
-    async _requestUserLocation() {
-        // 防止重复请求定位
-        if (this._isRequestingLocation) {
-            console.log('📍 正在请求定位中，跳过重复请求');
-            return;
-        }
-
-        try {
-            console.log('📍 开始请求用户位置...');
-            this._isRequestingLocation = true;
-            
-            // 检查是否已经获取过位置
-            const cachedPosition = this.geolocationService.getCachedPosition();
-            if (cachedPosition) {
-                console.log('📍 使用缓存的位置信息');
-                await this._handleUserLocation(cachedPosition);
-                return;
-            }
-
-            // 显示友好的定位请求提示
-            const position = await this.geolocationService.requestLocationWithPrompt();
-            await this._handleUserLocation(position);
-            
-        } catch (error) {
-            console.log('📍 定位被拒绝或失败:', error.message);
-            // 不显示错误消息，让用户可以手动选择位置
-            this._showLocationFallback();
-        } finally {
-            this._isRequestingLocation = false;
-        }
-    }
-
-    // 私有方法：处理用户位置
-    async _handleUserLocation(position) {
-        try {
-            console.log('📍 处理用户位置:', position);
-
-            // 移动地图中心到用户位置
-            const userCenter = [position.longitude, position.latitude];
-            this.map.setCenter(userCenter);
-            this.map.setZoom(15); // 设置较高的缩放级别
-
-            // 添加用户位置标记
-            this._addUserLocationMarker(position);
-
-            // 获取位置的地址信息
-            const addressInfo = await this.geolocationService.reverseGeocode(
-                position.longitude, 
-                position.latitude, 
-                CONFIG.AMAP.KEY
-            );
-
-            if (addressInfo.success) {
-                console.log('📍 用户位置地址:', addressInfo.formatted_address);
-                
-                // 更新起点输入框
-                this._updateStartLocationInput(addressInfo.formatted_address);
-                
-                // 显示位置获取成功的消息
-                DOMUtils.showMessage(`📍 定位成功：${addressInfo.formatted_address}`, 'success');
-            } else {
-                DOMUtils.showMessage('📍 定位成功，但获取地址信息失败', 'warning');
-            }
-
-        } catch (error) {
-            console.error('❌ 处理用户位置失败:', error);
-            DOMUtils.showMessage('位置信息处理失败', 'error');
-        }
-    }
-
-    // 私有方法：添加用户位置标记
-    _addUserLocationMarker(position) {
-        // 移除之前的用户位置标记
-        if (this.userLocationMarker && this.map) {
-            this.map.remove(this.userLocationMarker);
-        }
-
-        // 创建用户位置图标
-        const userIconUrl = this._createUserLocationIcon();
-
-        // 创建用户位置标记
-        this.userLocationMarker = new AMap.Marker({
-            position: new AMap.LngLat(position.longitude, position.latitude),
-            icon: new AMap.Icon({
-                size: new AMap.Size(24, 24),
-                image: userIconUrl
-            }),
-            title: '您的位置',
-            zIndex: 1000 // 确保用户位置标记在最上层
-        });
-
-        // 添加信息窗体
-        const infoWindow = new AMap.InfoWindow({
-            content: `
-                <div style="padding: 10px;">
-                    <h4 style="margin: 0 0 5px 0; color: #2c3e50;">
-                        🧭 您的当前位置
-                    </h4>
-                    <p style="margin: 0; color: #7f8c8d; font-size: 12px;">
-                        精度: ${Math.round(position.accuracy)}米
-                    </p>
-                    <p style="margin: 5px 0 0 0; color: #17a2b8; font-size: 11px;">
-                        点击此处开始规划路线
-                    </p>
-                </div>
-            `,
-            offset: new AMap.Pixel(0, -24)
-        });
-
-        this.userLocationMarker.on('click', () => {
-            infoWindow.open(this.map, this.userLocationMarker.getPosition());
-            // 可以在这里添加打开规划面板的逻辑
-            const plannerBtn = document.getElementById('floating-planner-btn');
-            if (plannerBtn) {
-                plannerBtn.style.animation = 'bounce 0.6s ease-in-out';
-                setTimeout(() => {
-                    plannerBtn.style.animation = '';
-                }, 600);
-            }
-        });
-
-        this.map.add(this.userLocationMarker);
-    }
-
-    // 私有方法：创建用户位置图标
-    _createUserLocationIcon() {
-        const svg = `
-            <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="8" fill="#4285f4" opacity="0.3"/>
-                <circle cx="12" cy="12" r="4" fill="#4285f4"/>
-                <circle cx="12" cy="12" r="2" fill="white"/>
-            </svg>
-        `;
-        return 'data:image/svg+xml;base64,' + btoa(svg);
-    }
-
-    // 私有方法：更新起点输入框
-    _updateStartLocationInput(address) {
-        try {
-            const startLocationInput = document.getElementById('start-location');
-            if (startLocationInput && !startLocationInput.value.trim()) {
-                startLocationInput.value = address;
-                startLocationInput.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-        } catch (error) {
-            console.warn('⚠️ 更新起点输入框失败:', error);
-        }
-    }
-
-    // 私有方法：显示定位失败的备选方案
-    _showLocationFallback() {
-        // 可以在这里添加手动选择位置的提示
-        console.log('📍 用户可以手动选择起点位置');
-        
-        setTimeout(() => {
-            const message = document.createElement('div');
-            message.style.cssText = `
-                position: fixed;
-                top: 80px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: rgba(255, 255, 255, 0.95);
-                padding: 12px 20px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                color: #6c757d;
-                font-size: 14px;
-                z-index: 1001;
-                max-width: 300px;
-                text-align: center;
-                border-left: 4px solid #17a2b8;
-            `;
-            message.innerHTML = '💡 您可以在规划面板中手动输入起点位置';
-            
-            document.body.appendChild(message);
-            
-            setTimeout(() => {
-                if (message.parentNode) {
-                    message.style.opacity = '0';
-                    message.style.transition = 'opacity 0.3s ease';
-                    setTimeout(() => {
-                        message.parentNode.removeChild(message);
-                    }, 300);
-                }
-            }, 4000);
-        }, 1000);
-    }
-
-    // 公开方法：重新获取用户位置
-    async requestUserLocation() {
-        // 重置定位状态，允许重新请求
-        this._isRequestingLocation = false;
-        await this._requestUserLocation();
-    }
-
-    // 公开方法：获取用户当前位置
-    getUserLocation() {
-        return this.geolocationService.getCachedPosition();
     }
 }
