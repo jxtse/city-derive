@@ -68,45 +68,25 @@ export class MapService {
     
     // 更新地图显示路线
     updateRoute(routeResult) {
-        if (!this.map) {
-            console.error('❌ 地图实例不存在，无法更新路线');
-            DOMUtils.showMessage('地图未初始化，请稍后重试', 'error');
-            return;
-        }
+        if (!this.map) return;
         
         console.log('🗺️ 更新地图路线显示:', routeResult);
         
         try {
-            // 验证路线数据完整性
-            if (!this._validateRouteData(routeResult)) {
-                throw new Error('路线数据格式无效');
-            }
-
             this.clearMap();
             this.currentRoute = routeResult;
             
             const waypoints = this._buildWaypoints(routeResult);
-            
-            if (waypoints.length === 0) {
-                throw new Error('无法构建有效的路径点');
-            }
-
             this._addMarkers(waypoints);
             this._addTemporaryPath(waypoints);
             this._fitMapView();
-            
-            console.log('✅ 地图路线更新成功');
-            DOMUtils.showMessage('地图路线更新成功', 'success');
             
             // 异步获取真实路径
             this._loadRealPaths(waypoints);
             
         } catch (error) {
             console.error('❌ 更新地图显示失败:', error);
-            DOMUtils.showMessage(`地图更新失败: ${error.message}`, 'error');
-            
-            // 尝试恢复到基础显示模式
-            this._fallbackRouteDisplay(routeResult);
+            DOMUtils.showMessage('地图更新失败', 'error');
         }
     }
     
@@ -136,183 +116,39 @@ export class MapService {
         }
     }
     
-    // 私有方法：验证路线数据
-    _validateRouteData(routeResult) {
-        try {
-            if (!routeResult || !routeResult.route) {
-                console.error('❌ 路线结果为空或格式错误');
-                return false;
-            }
-
-            const route = routeResult.route;
-            
-            // 验证起点
-            if (!route.start_point || !this._isValidPoint(route.start_point)) {
-                console.error('❌ 起点数据无效:', route.start_point);
-                return false;
-            }
-
-            // 验证终点
-            if (!route.end_point || !this._isValidPoint(route.end_point)) {
-                console.error('❌ 终点数据无效:', route.end_point);
-                return false;
-            }
-
-            // 验证途经点（如果存在）
-            if (route.waypoints) {
-                for (let i = 0; i < route.waypoints.length; i++) {
-                    if (!this._isValidPoint(route.waypoints[i])) {
-                        console.error(`❌ 途经点 ${i} 数据无效:`, route.waypoints[i]);
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        } catch (error) {
-            console.error('❌ 路线数据验证失败:', error);
-            return false;
-        }
-    }
-
-    // 私有方法：验证点位数据
-    _isValidPoint(point) {
-        if (!point) return false;
-        
-        const lng = point.longitude || point.location?.[0];
-        const lat = point.latitude || point.location?.[1];
-        
-        return GeoUtils.isValidCoordinate(lng, lat);
-    }
-
-    // 私有方法：备用路线显示
-    _fallbackRouteDisplay(routeResult) {
-        try {
-            console.log('🔄 尝试备用路线显示模式...');
-            
-            if (!routeResult?.route?.start_point || !routeResult?.route?.end_point) {
-                console.error('❌ 无法进行备用显示，缺少基本路线信息');
-                return;
-            }
-
-            this.clearMap();
-            
-            // 只显示起点和终点
-            const basicWaypoints = [
-                {
-                    ...routeResult.route.start_point,
-                    type: 'start',
-                    name: routeResult.route.start_point.formatted_address || routeResult.route.start_point.name || '起点'
-                },
-                {
-                    ...routeResult.route.end_point,
-                    type: 'end',
-                    name: routeResult.route.end_point.name || routeResult.route.end_point.formatted_address || '终点'
-                }
-            ];
-
-            // 标准化坐标
-            basicWaypoints.forEach(point => {
-                if (!point.longitude && point.location?.[0]) {
-                    point.longitude = point.location[0];
-                    point.latitude = point.location[1];
-                }
-            });
-
-            const validWaypoints = basicWaypoints.filter(wp => 
-                GeoUtils.isValidCoordinate(wp.longitude, wp.latitude)
-            );
-
-            if (validWaypoints.length >= 2) {
-                this._addMarkers(validWaypoints);
-                this._addTemporaryPath(validWaypoints);
-                this._fitMapView();
-                
-                console.log('✅ 备用路线显示成功');
-                DOMUtils.showMessage('已显示基础路线（起点-终点）', 'warning');
-            } else {
-                console.error('❌ 备用显示也失败，坐标数据完全无效');
-                DOMUtils.showMessage('路线数据完全无效，无法显示', 'error');
-            }
-            
-        } catch (error) {
-            console.error('❌ 备用路线显示失败:', error);
-            DOMUtils.showMessage('备用显示模式也失败了', 'error');
-        }
-    }
-
     // 私有方法：构建路径点
     _buildWaypoints(routeResult) {
         const waypoints = [];
         
-        try {
-            // 添加起点
-            const startPoint = {
-                ...routeResult.route.start_point,
-                type: 'start',
-                name: routeResult.route.start_point.formatted_address || 
-                      routeResult.route.start_point.name || '起点'
-            };
-            
-            // 标准化起点坐标
-            if (!startPoint.longitude && startPoint.location?.[0]) {
-                startPoint.longitude = startPoint.location[0];
-                startPoint.latitude = startPoint.location[1];
-            }
-            
-            waypoints.push(startPoint);
-            
-            // 添加途经点
-            if (routeResult.route.waypoints && Array.isArray(routeResult.route.waypoints)) {
-                routeResult.route.waypoints.forEach((waypoint, index) => {
-                    const wp = {
-                        ...waypoint,
-                        type: 'waypoint',
-                        longitude: waypoint.location?.[0] || waypoint.longitude,
-                        latitude: waypoint.location?.[1] || waypoint.latitude,
-                        name: waypoint.name || `途经点${index + 1}`
-                    };
-                    
-                    if (GeoUtils.isValidCoordinate(wp.longitude, wp.latitude)) {
-                        waypoints.push(wp);
-                    } else {
-                        console.warn(`⚠️ 跳过无效途经点 ${index}:`, waypoint);
-                    }
+        // 添加起点
+        waypoints.push({
+            ...routeResult.route.start_point,
+            type: 'start',
+            name: routeResult.route.start_point.formatted_address || '起点'
+        });
+        
+        // 添加途经点
+        if (routeResult.route.waypoints) {
+            routeResult.route.waypoints.forEach(waypoint => {
+                waypoints.push({
+                    ...waypoint,
+                    type: 'waypoint',
+                    longitude: waypoint.location?.[0] || waypoint.longitude,
+                    latitude: waypoint.location?.[1] || waypoint.latitude
                 });
-            }
-            
-            // 添加终点
-            const endPoint = {
-                ...routeResult.route.end_point,
-                type: 'end',
-                name: routeResult.route.end_point.name || 
-                      routeResult.route.end_point.formatted_address || '终点'
-            };
-            
-            // 标准化终点坐标
-            if (!endPoint.longitude && endPoint.location?.[0]) {
-                endPoint.longitude = endPoint.location[0];
-                endPoint.latitude = endPoint.location[1];
-            }
-            
-            waypoints.push(endPoint);
-            
-            // 过滤有效坐标
-            const validWaypoints = waypoints.filter(wp => {
-                const isValid = GeoUtils.isValidCoordinate(wp.longitude, wp.latitude);
-                if (!isValid) {
-                    console.warn('⚠️ 过滤无效路径点:', wp);
-                }
-                return isValid;
             });
-            
-            console.log(`✅ 成功构建 ${validWaypoints.length} 个有效路径点`);
-            return validWaypoints;
-            
-        } catch (error) {
-            console.error('❌ 构建路径点失败:', error);
-            return [];
         }
+        
+        // 添加终点
+        waypoints.push({
+            ...routeResult.route.end_point,
+            type: 'end',
+            name: routeResult.route.end_point.name || '终点'
+        });
+        
+        return waypoints.filter(wp => 
+            GeoUtils.isValidCoordinate(wp.longitude, wp.latitude)
+        );
     }
     
     // 私有方法：添加标记
@@ -822,293 +658,5 @@ export class MapService {
     // 公开方法：获取用户当前位置
     getUserLocation() {
         return this.geolocationService.getCachedPosition();
-    }
-
-    // 公开方法：导出完整路线数据
-    exportCompleteRouteData() {
-        if (!this.currentRoute) {
-            console.warn('⚠️ 没有可导出的路线数据');
-            return null;
-        }
-
-        try {
-            const exportData = {
-                // 基本路线信息
-                route_meta: {
-                    export_time: new Date().toISOString(),
-                    export_version: '2.1',
-                    route_name: `智能散步路线_${new Date().toLocaleDateString()}`,
-                    total_distance: this.currentRoute.route.distance || 0,
-                    total_duration: this.currentRoute.route.duration || 0,
-                    estimated_walk_time: Math.round((this.currentRoute.route.duration || 0) / 60),
-                    waypoints_count: (this.currentRoute.route.waypoints || []).length + 2 // 包括起终点
-                },
-
-                // 完整标记点信息
-                markers_info: {
-                    start_point: this._extractMarkerInfo(this.currentRoute.route.start_point, 'start'),
-                    waypoints: (this.currentRoute.route.waypoints || []).map((wp, index) => 
-                        this._extractMarkerInfo(wp, 'waypoint', index + 1)
-                    ),
-                    end_point: this._extractMarkerInfo(this.currentRoute.route.end_point, 'end')
-                },
-
-                // 详细路径信息
-                path_details: {
-                    coordinate_points: this._extractCoordinatePath(),
-                    real_path_segments: this.currentRoute.route.real_paths || [],
-                    real_distance: this.currentRoute.route.real_distance || this.currentRoute.route.distance,
-                    real_duration: this.currentRoute.route.real_duration || this.currentRoute.route.duration,
-                    path_type: this.currentRoute.route.real_paths ? 'real_walking_path' : 'estimated_straight_line'
-                },
-
-                // 导航信息
-                navigation_details: {
-                    step_by_step_directions: this._extractNavigationSteps(),
-                    turn_instructions: this._extractTurnInstructions(),
-                    landmark_references: this._extractLandmarks(),
-                    safety_notes: this._generateSafetyNotes()
-                },
-
-                // 地图显示状态
-                map_state: {
-                    center_coordinates: this.map ? [this.map.getCenter().lng, this.map.getCenter().lat] : null,
-                    zoom_level: this.map ? this.map.getZoom() : null,
-                    map_bounds: this._getMapBounds(),
-                    markers_count: this.markers.length,
-                    has_polyline: !!this.polyline
-                },
-
-                // AI分析信息
-                ai_analysis: this.currentRoute.analysis || {},
-
-                // 技术信息
-                technical_details: {
-                    coordinate_system: 'WGS84',
-                    map_service: 'Amap (高德地图)',
-                    accuracy_level: 'Street Level',
-                    llm_guided: this.currentRoute.technical_info?.llm_guided || false,
-                    export_source: 'MapService.js'
-                }
-            };
-
-            console.log('✅ 成功生成完整路线导出数据');
-            return exportData;
-
-        } catch (error) {
-            console.error('❌ 导出路线数据失败:', error);
-            return null;
-        }
-    }
-
-    // 私有方法：提取标记点信息
-    _extractMarkerInfo(point, type, sequence = null) {
-        if (!point) return null;
-
-        return {
-            type: type,
-            sequence: sequence,
-            name: point.name || point.formatted_address || `${type}_point`,
-            address: point.address || point.formatted_address || '',
-            coordinates: {
-                longitude: point.longitude || point.location?.[0] || 0,
-                latitude: point.latitude || point.location?.[1] || 0
-            },
-            description: point.reason || `AI推荐的${type === 'start' ? '起点' : type === 'end' ? '终点' : '途经点'}`,
-            poi_info: {
-                type: point.type || 'unknown',
-                rating: point.rating || 'N/A',
-                distance_from_start: point.distance || 0
-            },
-            visit_suggestion: this._generateVisitSuggestion(point, type)
-        };
-    }
-
-    // 私有方法：提取坐标路径
-    _extractCoordinatePath() {
-        const coordinates = [];
-        
-        if (this.currentRoute?.route) {
-            const route = this.currentRoute.route;
-            
-            // 添加起点
-            if (route.start_point) {
-                coordinates.push({
-                    point_type: 'start',
-                    longitude: route.start_point.longitude || route.start_point.location?.[0],
-                    latitude: route.start_point.latitude || route.start_point.location?.[1],
-                    name: route.start_point.name || route.start_point.formatted_address || '起点'
-                });
-            }
-
-            // 添加途经点
-            if (route.waypoints) {
-                route.waypoints.forEach((wp, index) => {
-                    coordinates.push({
-                        point_type: 'waypoint',
-                        sequence: index + 1,
-                        longitude: wp.longitude || wp.location?.[0],
-                        latitude: wp.latitude || wp.location?.[1],
-                        name: wp.name || `途经点${index + 1}`
-                    });
-                });
-            }
-
-            // 添加终点
-            if (route.end_point) {
-                coordinates.push({
-                    point_type: 'end',
-                    longitude: route.end_point.longitude || route.end_point.location?.[0],
-                    latitude: route.end_point.latitude || route.end_point.location?.[1],
-                    name: route.end_point.name || route.end_point.formatted_address || '终点'
-                });
-            }
-        }
-
-        return coordinates;
-    }
-
-    // 私有方法：提取导航步骤
-    _extractNavigationSteps() {
-        if (this.currentRoute?.route?.steps) {
-            return this.currentRoute.route.steps.map((step, index) => ({
-                step_number: index + 1,
-                instruction: step.instruction || step.action || '继续前行',
-                distance: step.distance || 0,
-                duration: step.duration || 0,
-                direction: this._extractDirection(step.instruction || step.action || ''),
-                landmark: step.landmark || ''
-            }));
-        }
-        return [];
-    }
-
-    // 私有方法：提取转向指示
-    _extractTurnInstructions() {
-        const instructions = [];
-        
-        if (this.currentRoute?.route?.waypoints) {
-            const waypoints = [
-                this.currentRoute.route.start_point,
-                ...this.currentRoute.route.waypoints,
-                this.currentRoute.route.end_point
-            ];
-
-            for (let i = 0; i < waypoints.length - 1; i++) {
-                const from = waypoints[i];
-                const to = waypoints[i + 1];
-                
-                instructions.push({
-                    instruction_id: i + 1,
-                    from_point: from.name || from.formatted_address || `点${i + 1}`,
-                    to_point: to.name || to.formatted_address || `点${i + 2}`,
-                    bearing: this._calculateBearing(from, to),
-                    distance: GeoUtils.calculateDistance(from, to) * 1000,
-                    estimated_time: Math.round(GeoUtils.calculateDistance(from, to) * 1000 / CONFIG.PLANNING.DEFAULT_WALK_SPEED)
-                });
-            }
-        }
-
-        return instructions;
-    }
-
-    // 私有方法：提取地标信息
-    _extractLandmarks() {
-        const landmarks = [];
-        
-        if (this.currentRoute?.nearby_pois) {
-            this.currentRoute.nearby_pois.forEach(poi => {
-                landmarks.push({
-                    name: poi.name,
-                    type: poi.type,
-                    coordinates: {
-                        longitude: poi.location?.[0] || 0,
-                        latitude: poi.location?.[1] || 0
-                    },
-                    distance_from_route: poi.distance || 'N/A',
-                    rating: poi.rating || 'N/A',
-                    address: poi.address || '',
-                    visit_value: this._assessVisitValue(poi)
-                });
-            });
-        }
-
-        return landmarks;
-    }
-
-    // 私有方法：生成安全提示
-    _generateSafetyNotes() {
-        return [
-            '🚶‍♂️ 建议在光线充足的时段进行散步',
-            '⚠️ 注意交通安全，遵守交通规则',
-            '💧 携带充足的水和轻便食品',
-            '📱 保持手机电量充足，告知他人行程',
-            '🌤️ 关注天气变化，适当调整计划',
-            '👥 建议结伴而行，特别是在陌生区域',
-            '🏥 了解沿途医疗设施位置',
-            '🕐 预留充足时间，不要急于赶路'
-        ];
-    }
-
-    // 私有方法：生成访问建议
-    _generateVisitSuggestion(point, type) {
-        if (type === 'start') {
-            return '确认起点位置，检查随身物品，开始愉快的散步之旅';
-        } else if (type === 'end') {
-            return '到达终点，回顾散步体验，注意休息补充水分';
-        } else {
-            return `建议停留15-30分钟，欣赏${point.name || '周围环境'}，拍照留念`;
-        }
-    }
-
-    // 私有方法：提取方向信息
-    _extractDirection(instruction) {
-        const inst = instruction.toLowerCase();
-        if (inst.includes('左') || inst.includes('left')) return 'turn_left';
-        if (inst.includes('右') || inst.includes('right')) return 'turn_right';
-        if (inst.includes('直') || inst.includes('straight')) return 'straight';
-        return 'continue';
-    }
-
-    // 私有方法：计算方位角
-    _calculateBearing(from, to) {
-        const fromLng = from.longitude || from.location?.[0] || 0;
-        const fromLat = from.latitude || from.location?.[1] || 0;
-        const toLng = to.longitude || to.location?.[0] || 0;
-        const toLat = to.latitude || to.location?.[1] || 0;
-
-        const dLng = (toLng - fromLng) * Math.PI / 180;
-        const lat1 = fromLat * Math.PI / 180;
-        const lat2 = toLat * Math.PI / 180;
-
-        const y = Math.sin(dLng) * Math.cos(lat2);
-        const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
-
-        const bearing = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
-        return Math.round(bearing);
-    }
-
-    // 私有方法：评估访问价值
-    _assessVisitValue(poi) {
-        const rating = parseFloat(poi.rating) || 0;
-        if (rating >= 4.5) return 'high';
-        if (rating >= 3.5) return 'medium';
-        return 'low';
-    }
-
-    // 私有方法：获取地图边界
-    _getMapBounds() {
-        if (!this.map) return null;
-        
-        try {
-            const bounds = this.map.getBounds();
-            return {
-                southwest: [bounds.getSouthWest().lng, bounds.getSouthWest().lat],
-                northeast: [bounds.getNorthEast().lng, bounds.getNorthEast().lat]
-            };
-        } catch (error) {
-            console.warn('⚠️ 无法获取地图边界:', error);
-            return null;
-        }
     }
 }

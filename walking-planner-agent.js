@@ -1030,43 +1030,17 @@ function showModal(content) {
 
 // 导出路线
 function exportRoute(route) {
-    // 首先尝试从MapService获取完整的导出数据
-    let exportData = null;
-    
-    if (mapService && typeof mapService.exportCompleteRouteData === 'function') {
-        exportData = mapService.exportCompleteRouteData();
-        console.log('✅ 使用MapService导出完整路线数据');
-    }
-    
-    // 如果MapService导出失败，使用备用导出方法
-    if (!exportData) {
-        console.log('⚠️ MapService导出失败，使用备用导出方法');
-        exportData = generateFallbackExportData(route);
-    }
-
-    if (!exportData) {
-        DOMUtils.showMessage('导出数据生成失败', 'error');
-        return;
-    }
-
-    // 继续执行原有的文件生成和下载逻辑...
-    _performFileExport(exportData);
-}
-
-// 备用导出数据生成
-function generateFallbackExportData(route) {
-    try {
-        return {
-            // 基本信息
-            route_info: {
-                name: `散步路线_${new Date().toLocaleDateString()}`,
-                export_time: new Date().toISOString(),
-                export_version: '2.0',
-                total_distance: route.route.distance,
-                total_duration: route.route.duration,
-                estimated_walk_time: Math.round(route.route.duration / 60) + '分钟',
-                difficulty_level: route.analysis.experience_rating || '8'
-            },
+    const exportData = {
+        // 基本信息
+        route_info: {
+            name: `散步路线_${new Date().toLocaleDateString()}`,
+            export_time: new Date().toISOString(),
+            export_version: '2.0',
+            total_distance: route.route.distance,
+            total_duration: route.route.duration,
+            estimated_walk_time: Math.round(route.route.duration / 60) + '分钟',
+            difficulty_level: route.analysis.experience_rating || '8'
+        },
 
         // 完整标记点信息
         markers: {
@@ -1198,29 +1172,6 @@ function generateFallbackExportData(route) {
         }
     };
 
-    // 创建增强的JSON文件
-    const jsonBlob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const jsonUrl = URL.createObjectURL(jsonBlob);
-
-    // 创建GPX格式文件（GPS标准格式）
-    const gpxContent = generateGPXContent(exportData);
-    const gpxBlob = new Blob([gpxContent], { type: 'application/gpx+xml' });
-    const gpxUrl = URL.createObjectURL(gpxBlob);
-
-    // 创建KML格式文件（Google Earth兼容）
-    const kmlContent = generateKMLContent(exportData);
-    const kmlBlob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
-    const kmlUrl = URL.createObjectURL(kmlBlob);
-
-    return exportData;
-    } catch (error) {
-        console.error('❌ 备用导出数据生成失败:', error);
-        return null;
-    }
-}
-
-// 执行文件导出
-function _performFileExport(exportData) {
     // 创建增强的JSON文件
     const jsonBlob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const jsonUrl = URL.createObjectURL(jsonBlob);
