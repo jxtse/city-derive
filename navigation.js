@@ -586,6 +586,32 @@ class NavigationApp {
         }
     }
 
+    showGenericActionInfo(option, action) {
+        console.log('🔍 显示通用选项信息:', option, action);
+        // 可以在这里添加通用的处理逻辑，比如显示消息或执行默认动作
+        this.showMessage(`您选择了：${option}`, 'info');
+    }
+
+    showWaterFeatureInfo() {
+        console.log('🏞️ 显示水景特征信息');
+        this.showMessage('正在分析附近的水景特征...', 'info');
+    }
+
+    showArtInstallationInfo() {
+        console.log('🎨 显示艺术装置信息');
+        this.showMessage('正在分析附近的艺术装置...', 'info');
+    }
+
+    showArchitecturalFeatureInfo() {
+        console.log('🏢 显示建筑特征信息');
+        this.showMessage('正在分析建筑特征...', 'info');
+    }
+
+    showGreenLandscapeInfo() {
+        console.log('🌳 显示绿化景观信息');
+        this.showMessage('正在分析绿化景观...', 'info');
+    }
+
     updateLocationDisplay(customText = null) {
         const locationText = document.getElementById('location-text');
 
