@@ -565,51 +565,9 @@ class NavigationApp {
     }
 
     handleUserChoice(option, action) {
-        console.log('🎯 执行用户选择的动作:', action);
-
-        // 根据选择的选项执行不同的动作
-        switch(option) {
-            case '水池/人工小湖':
-                this.showWaterFeatureInfo();
-                break;
-            case '雕塑或艺术装置':
-                this.showArtInstallationInfo();
-                break;
-            case '颜色鲜明的墙面':
-                this.showArchitecturalFeatureInfo();
-                break;
-            case '大量绿植或独特行道树':
-                this.showGreenLandscapeInfo();
-                break;
-            default:
-                this.showGenericActionInfo(option, action);
-        }
-    }
-
-    showGenericActionInfo(option, action) {
-        console.log('🔍 显示通用选项信息:', option, action);
-        // 可以在这里添加通用的处理逻辑，比如显示消息或执行默认动作
-        this.showMessage(`您选择了：${option}`, 'info');
-    }
-
-    showWaterFeatureInfo() {
-        console.log('🏞️ 显示水景特征信息');
-        this.showMessage('正在分析附近的水景特征...', 'info');
-    }
-
-    showArtInstallationInfo() {
-        console.log('🎨 显示艺术装置信息');
-        this.showMessage('正在分析附近的艺术装置...', 'info');
-    }
-
-    showArchitecturalFeatureInfo() {
-        console.log('🏢 显示建筑特征信息');
-        this.showMessage('正在分析建筑特征...', 'info');
-    }
-
-    showGreenLandscapeInfo() {
-        console.log('🌳 显示绿化景观信息');
-        this.showMessage('正在分析绿化景观...', 'info');
+        console.log('🎯 用户选择已记录:', option, action);
+        // 所有处理逻辑已在selectOption方法中通过Dify API完成
+        // 这里不需要额外的硬编码处理
     }
 
     updateLocationDisplay(customText = null) {
