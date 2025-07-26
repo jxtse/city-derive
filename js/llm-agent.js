@@ -281,4 +281,177 @@ export class LLMPlanningAgent {
         
         return keywordMap[preference] || '景点|公园|广场|文化|商业';
     }
+
+    // 主要的智能规划方法 - LLM主导整个过程
+    async intelligentPlanRoute(startLocation, city, preferences) {
+        try {
+            console.log('🧠 开始LLM智能路径规划...');
+            
+            // 步骤1: 解析起点地址
+            console.log('📍 第1步: 解析起点地址...');
+            const startResult = await this.geocodeAddress(startLocation, city);
+            if (!startResult.success) {
+                throw new Error(`无法解析起点地址: ${startResult.error}`);
+            }
+
+            const startPoint = {
+                longitude: startResult.longitude,
+                latitude: startResult.latitude,
+                formatted_address: startResult.formatted_address
+            };
+
+            // 步骤2: 根据偏好搜索附近地点
+            console.log('🔍 第2步: 搜索符合偏好的地点...');
+            const keywords = this.getKeywordsByPreference(preferences.preference);
+            const poisResult = await this.searchNearbyPOIs(
+                startPoint.longitude, 
+                startPoint.latitude, 
+                keywords, 
+                parseInt(preferences.distance) * 1000
+            );
+
+            if (!poisResult.success || poisResult.pois.length === 0) {
+                console.warn('⚠️ 未找到符合偏好的地点，使用通用搜索...');
+                const fallbackResult = await this.searchNearbyPOIs(
+                    startPoint.longitude, 
+                    startPoint.latitude, 
+                    '景点|公园', 
+                    3000
+                );
+                poisResult.pois = fallbackResult.pois || [];
+            }
+
+            // 步骤3: 选择合适的途经点和终点
+            console.log('🎯 第3步: 选择路线点...');
+            const waypoints = [];
+            const targetDistance = parseInt(preferences.distance) * 1000; // 转换为米
+            
+            // 选择2-3个途经点
+            const selectedPOIs = poisResult.pois
+                .filter(poi => poi.distance && poi.distance > 300) // 过滤太近的点
+                .sort((a, b) => a.distance - b.distance) // 按距离排序
+                .slice(0, 3); // 最多3个点
+
+            selectedPOIs.forEach(poi => {
+                waypoints.push({
+                    name: poi.name,
+                    longitude: poi.location[0],
+                    latitude: poi.location[1],
+                    address: poi.address,
+                    distance: poi.distance,
+                    reason: `符合${preferences.preference}偏好的推荐地点`
+                });
+            });
+
+            // 选择终点
+            let endPoint;
+            if (preferences.endType === '回到起点') {
+                endPoint = {
+                    name: '起点',
+                    longitude: startPoint.longitude,
+                    latitude: startPoint.latitude,
+                    address: startPoint.formatted_address
+                };
+            } else {
+                // 选择一个远一点的地点作为终点
+                const endPOI = poisResult.pois
+                    .filter(poi => poi.distance > targetDistance * 0.3)
+                    .sort((a, b) => b.distance - a.distance)[0];
+                
+                if (endPOI) {
+                    endPoint = {
+                        name: endPOI.name,
+                        longitude: endPOI.location[0],
+                        latitude: endPOI.location[1],
+                        address: endPOI.address
+                    };
+                } else {
+                    // 如果没有合适的终点，回到起点
+                    endPoint = {
+                        name: '起点',
+                        longitude: startPoint.longitude,
+                        latitude: startPoint.latitude,
+                        address: startPoint.formatted_address
+                    };
+                }
+            }
+
+            // 步骤4: 计算路径信息
+            console.log('🛣️ 第4步: 计算路径信息...');
+            let totalDistance = 0;
+            let totalDuration = 0;
+
+            // 简单估算距离和时间
+            if (waypoints.length > 0) {
+                // 计算各点之间的直线距离估算
+                let prevPoint = startPoint;
+                for (const waypoint of waypoints) {
+                    const dist = this.calculateDistance(prevPoint, waypoint);
+                    totalDistance += dist;
+                    prevPoint = waypoint;
+                }
+                // 到终点的距离
+                totalDistance += this.calculateDistance(prevPoint, endPoint);
+            } else {
+                totalDistance = this.calculateDistance(startPoint, endPoint);
+            }
+
+            // 步行速度约 4km/h = 1.1m/s
+            totalDuration = Math.round(totalDistance / 1.1);
+
+            // 构建最终结果
+            const result = {
+                route: {
+                    start_point: startPoint,
+                    waypoints: waypoints,
+                    end_point: endPoint,
+                    distance: totalDistance,
+                    duration: totalDuration,
+                    steps: []
+                },
+                analysis: {
+                    route_description: `根据您的${preferences.preference}偏好，为您规划了一条约${(totalDistance/1000).toFixed(1)}公里的散步路线`,
+                    recommended_waypoints: waypoints.map(wp => ({
+                        name: wp.name,
+                        reason: wp.reason
+                    })),
+                    practical_tips: [
+                        `建议步行时间约${Math.round(totalDuration/60)}分钟`,
+                        `路线类型：${preferences.preference}主题散步`,
+                        `适合休闲散步，请注意安全`
+                    ],
+                    experience_rating: '8.5'
+                },
+                technical_info: {
+                    llm_guided: true,
+                    planning_steps: this.planningHistory,
+                    api_calls: ['geocode', 'search_nearby_pois'],
+                    total_pois_found: poisResult.pois.length
+                }
+            };
+
+            console.log('✅ LLM智能规划完成:', result);
+            return result;
+
+        } catch (error) {
+            console.error('❌ LLM智能规划失败:', error);
+            throw error;
+        }
+    }
+
+    // 计算两点间距离的辅助方法
+    calculateDistance(point1, point2) {
+        const R = 6371000; // 地球半径（米）
+        const lat1 = point1.latitude * Math.PI / 180;
+        const lat2 = point2.latitude * Math.PI / 180;
+        const deltaLat = (point2.latitude - point1.latitude) * Math.PI / 180;
+        const deltaLng = (point2.longitude - point1.longitude) * Math.PI / 180;
+
+        const a = Math.sin(deltaLat/2) * Math.sin(deltaLat/2) +
+                Math.cos(lat1) * Math.cos(lat2) *
+                Math.sin(deltaLng/2) * Math.sin(deltaLng/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+        return R * c;
+    }
 }

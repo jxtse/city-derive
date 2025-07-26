@@ -321,6 +321,45 @@ export class UIManager {
         }
     }
 
+    // 更新步骤状态
+    updateStepStatus(stepId, status, detail, additionalData) {
+        if (!stepId || !this.currentPlanningSteps[stepId]) {
+            console.warn(`⚠️ 无效的步骤ID: ${stepId}`);
+            return;
+        }
+
+        const stepData = this.currentPlanningSteps[stepId];
+        const stepElement = stepData.element;
+        
+        if (!stepElement) return;
+
+        // 更新状态类
+        const statusElement = stepElement.querySelector('.step-status');
+        if (statusElement) {
+            statusElement.className = `step-status ${status}`;
+            statusElement.textContent = status.toUpperCase();
+        }
+
+        // 更新描述
+        if (detail) {
+            const descElement = stepElement.querySelector('.step-description');
+            if (descElement) {
+                descElement.textContent = detail;
+            }
+        }
+
+        // 更新内部数据
+        this.currentPlanningSteps[stepId] = {
+            ...stepData,
+            status: status,
+            detail: detail,
+            additionalData: additionalData
+        };
+
+        // 滚动到视图
+        stepElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
     // 清除规划步骤和重置终端
     clearPlanningSteps() {
         const stepsList = document.getElementById('steps-list');
