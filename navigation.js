@@ -512,37 +512,11 @@ class NavigationApp {
         // 创建或更新常驻指令信息区域
         this.createPersistentInstructionArea(selectedOption, nextAction);
 
-        const questionElement = document.getElementById('ai-question');
-        const optionsContainer = document.getElementById('options-container');
+        // 隐藏AI气泡
+        this.hideAIBubble();
 
-        // 更新问题显示为选择结果（简化版）
-        questionElement.innerHTML = `
-            <div style="color: #10b981; font-weight: 600; font-size: 15px;">
-                ✅ 您选择了：${selectedOption}
-            </div>
-        `;
-
-        // 显示已完成按钮，而不是显示加载状态
-        optionsContainer.innerHTML = `
-            <div style="text-align: center; padding: 20px;">
-                <div style="color: #374151; font-size: 14px; margin-bottom: 16px;">
-                    🎯 请按照上方指令完成此步骤
-                </div>
-                <button onclick="navigationApp.markStepAsCompleted()" style="
-                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                    color: white;
-                    border: none;
-                    padding: 12px 24px;
-                    border-radius: 12px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-                ">
-                    ✅ 已完成
-                </button>
-            </div>
-        `;
+        // 创建已完成按钮区域
+        this.createCompletionButton();
     }
 
     createPersistentInstructionArea(selectedOption, nextAction) {
@@ -596,12 +570,51 @@ class NavigationApp {
 
         // 显示指令区域
         instructionArea.style.display = 'block';
+    }
 
-        // 调整AI气泡位置，避免重叠
-        const aiChatBubble = document.getElementById('ai-chat-bubble');
-        if (aiChatBubble) {
-            aiChatBubble.style.top = '120px'; // 给常驻指令区域留出空间
+    createCompletionButton() {
+        // 检查是否已存在已完成按钮
+        let completionButton = document.getElementById('completion-button');
+
+        if (!completionButton) {
+            // 创建已完成按钮
+            completionButton = document.createElement('div');
+            completionButton.id = 'completion-button';
+            completionButton.style.cssText = `
+                position: fixed;
+                bottom: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1001;
+                display: none;
+            `;
+
+            document.body.appendChild(completionButton);
         }
+
+        // 更新按钮内容
+        completionButton.innerHTML = `
+            <button onclick="navigationApp.markStepAsCompleted()" style="
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                border: none;
+                padding: 14px 28px;
+                border-radius: 25px;
+                font-weight: 600;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            ">
+                ✅ 已完成
+            </button>
+        `;
+
+        // 显示按钮
+        completionButton.style.display = 'block';
     }
 
     hidePersistentInstruction() {
@@ -610,10 +623,9 @@ class NavigationApp {
             instructionArea.style.display = 'none';
         }
 
-        // 恢复AI气泡位置
-        const aiChatBubble = document.getElementById('ai-chat-bubble');
-        if (aiChatBubble) {
-            aiChatBubble.style.top = '60px';
+        const completionButton = document.getElementById('completion-button');
+        if (completionButton) {
+            completionButton.style.display = 'none';
         }
     }
 
