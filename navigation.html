@@ -35,23 +35,23 @@
             height: 100%;
         }
 
-        /* AI问答气泡 */
+        /* AI问答气泡 - 按照图片设计优化 */
         .ai-chat-bubble {
             position: fixed;
-            top: 60px;
+            top: 50px;
             left: 50%;
             transform: translateX(-50%);
-            max-width: 380px;
-            width: calc(100% - 40px);
-            background: rgba(255, 255, 255, 0.98);
+            max-width: 420px;
+            width: calc(100% - 32px);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border-radius: 24px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+            border: 1px solid rgba(139, 195, 74, 0.3);
             z-index: 1000;
-            padding: 20px;
+            padding: 24px;
             display: none;
-            animation: slideDown 0.4s ease-out;
+            animation: slideDown 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .ai-chat-bubble.show {
@@ -60,48 +60,64 @@
 
         .ai-header {
             display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
         }
 
         .ai-avatar {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #10b981, #059669);
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #8BC34A, #689F38);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 18px;
+            font-size: 20px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(139, 195, 74, 0.3);
+        }
+
+        .ai-question-container {
+            flex: 1;
+            position: relative;
         }
 
         .ai-question {
-            flex: 1;
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 600;
-            color: #1f2937;
-            line-height: 1.4;
+            color: #2E2E2E;
+            line-height: 1.5;
+            margin: 0;
+            padding-right: 32px;
         }
 
         .close-btn {
-            background: none;
+            position: absolute;
+            top: -4px;
+            right: -8px;
+            background: rgba(0, 0, 0, 0.1);
             border: none;
-            font-size: 20px;
-            color: #6b7280;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-size: 16px;
+            color: #666;
             cursor: pointer;
-            padding: 4px;
-            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.2s ease;
         }
 
         .close-btn:hover {
-            background: #f3f4f6;
-            color: #374151;
+            background: rgba(0, 0, 0, 0.2);
+            color: #333;
+            transform: scale(1.1);
         }
 
-        /* 选项列表 */
+        /* 选项列表 - 按照图片的彩色卡片设计 */
         .options-container {
             display: flex;
             flex-direction: column;
@@ -109,71 +125,90 @@
         }
 
         .option-item {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05));
-            border: 2px solid rgba(16, 185, 129, 0.2);
-            border-radius: 16px;
-            padding: 16px 20px;
+            background: #E8F5E8;
+            border: none;
+            border-radius: 20px;
+            padding: 18px 24px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
             overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .option-item:nth-child(1) {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.08));
+            background: linear-gradient(135deg, #E8F5E8, #C8E6C9);
         }
 
         .option-item:nth-child(2) {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.08));
-            border-color: rgba(59, 130, 246, 0.2);
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
         }
 
         .option-item:nth-child(3) {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(124, 58, 237, 0.08));
-            border-color: rgba(139, 92, 246, 0.2);
+            background: linear-gradient(135deg, #F3E5F5, #E1BEE7);
         }
 
         .option-item:nth-child(4) {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.08));
-            border-color: rgba(245, 158, 11, 0.2);
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
         }
 
         .option-item:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px) scale(1.02);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .option-item:nth-child(1):hover {
+            box-shadow: 0 8px 25px rgba(139, 195, 74, 0.3);
         }
 
         .option-item:nth-child(2):hover {
-            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.3);
         }
 
         .option-item:nth-child(3):hover {
-            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 8px 25px rgba(156, 39, 176, 0.3);
         }
 
         .option-item:nth-child(4):hover {
-            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.3);
         }
 
         .option-text {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 500;
-            color: #1f2937;
+            color: #2E2E2E;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            line-height: 1.4;
         }
 
         .option-arrow {
-            font-size: 18px;
-            color: #6b7280;
+            font-size: 20px;
+            color: #666;
             transition: all 0.3s ease;
+            opacity: 0.7;
         }
 
         .option-item:hover .option-arrow {
-            color: #10b981;
-            transform: translateX(4px);
+            opacity: 1;
+            transform: translateX(6px);
+        }
+
+        .option-item:nth-child(1):hover .option-arrow {
+            color: #689F38;
+        }
+
+        .option-item:nth-child(2):hover .option-arrow {
+            color: #1976D2;
+        }
+
+        .option-item:nth-child(3):hover .option-arrow {
+            color: #7B1FA2;
+        }
+
+        .option-item:nth-child(4):hover .option-arrow {
+            color: #F57C00;
         }
 
         
@@ -276,10 +311,12 @@
     <div class="ai-chat-bubble" id="ai-chat-bubble">
         <div class="ai-header">
             <div class="ai-avatar">🤖</div>
-            <div class="ai-question" id="ai-question">
-                正在分析您的位置...
+            <div class="ai-question-container">
+                <div class="ai-question" id="ai-question">
+                    正在分析您的位置...
+                </div>
+                <button class="close-btn" onclick="hideAIBubble()">×</button>
             </div>
-            <button class="close-btn" onclick="hideAIBubble()">×</button>
         </div>
         
         <div class="options-container" id="options-container">
