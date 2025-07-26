@@ -3531,29 +3531,537 @@ function showRobustnessStats() {
     document.body.appendChild(modal);
 }
 
-// 导出路线
+// 导出路线 - 增强版，包含详细信息
 function exportRoute(route) {
+    console.log('📁 开始导出详细路线信息...');
+    
+    // 生成详细的导出数据
     const exportData = {
-        route_name: `散步路线_${new Date().toLocaleDateString()}`,
-        start_point: route.route.start_point,
-        end_point: route.route.end_point,
-        waypoints: route.route.waypoints,
-        distance: route.route.distance,
-        duration: route.route.duration,
-        analysis: route.analysis,
-        export_time: new Date().toISOString()
+        // 基本信息
+        route_metadata: {
+            route_name: `AI智能散步路线_${new Date().toLocaleDateString()}`,
+            export_time: new Date().toISOString(),
+            export_version: "2.0.0",
+            generated_by: "AI智能散步规划器",
+            map_provider: "高德地图 Web API"
+        },
+        
+        // 路线概要
+        route_summary: {
+            total_distance_meters: route.route.distance,
+            total_distance_km: (route.route.distance / 1000).toFixed(2),
+            estimated_duration_seconds: route.route.duration,
+            estimated_duration_minutes: Math.round(route.route.duration / 60),
+            waypoints_count: route.route.waypoints ? route.route.waypoints.length : 0,
+            difficulty_rating: route.analysis ? route.analysis.experience_rating : 'N/A',
+            route_type: "步行路线"
+        },
+        
+        // 详细标记点信息
+        markers_detail: {
+            start_point: {
+                name: route.route.start_point.formatted_address || route.route.start_point.name || '起点',
+                coordinates: {
+                    longitude: route.route.start_point.longitude,
+                    latitude: route.route.start_point.latitude
+                },
+                address: route.route.start_point.formatted_address || '',
+                type: 'start',
+                marker_icon: 'start_icon',
+                navigation_instruction: '从此处开始您的散步之旅'
+            },
+            waypoints: (route.route.waypoints || []).map((waypoint, index) => ({
+                sequence: index + 1,
+                name: waypoint.name,
+                coordinates: {
+                    longitude: waypoint.longitude || waypoint.location[0],
+                    latitude: waypoint.latitude || waypoint.location[1]
+                },
+                address: waypoint.address || '',
+                type: 'waypoint',
+                marker_icon: 'waypoint_icon',
+                recommendation_reason: waypoint.reason || `第${index + 1}个推荐点`,
+                estimated_visit_duration: '10-15分钟',
+                navigation_instruction: `到达第${index + 1}个推荐地点，可在此稍作休息`
+            })),
+            end_point: {
+                name: route.route.end_point.name || '终点',
+                coordinates: {
+                    longitude: route.route.end_point.longitude,
+                    latitude: route.route.end_point.latitude
+                },
+                address: route.route.end_point.address || '',
+                type: 'end',
+                marker_icon: 'end_icon',
+                navigation_instruction: '恭喜您完成散步路线！'
+            }
+        },
+        
+        // 详细路径信息
+        path_details: {
+            // 基本路径信息
+            path_segments: generatePathSegments(route),
+            
+            // 真实路径坐标（如果存在）
+            real_path_coordinates: route.route.real_paths ? 
+                extractRealPathCoordinates(route.route.real_paths) : null,
+            
+            // 路径统计
+            path_statistics: {
+                total_segments: route.route.waypoints ? route.route.waypoints.length : 0,
+                has_real_walking_path: !!(route.route.real_paths && route.route.real_paths.length > 0),
+                real_distance_meters: route.route.real_distance || route.route.distance,
+                real_duration_seconds: route.route.real_duration || route.route.duration,
+                path_accuracy: route.route.real_paths ? 'High (实际道路)' : 'Medium (估算路径)'
+            }
+        },
+        
+        // 详细导航信息
+        navigation_details: {
+            // 分段导航指令
+            step_by_step_navigation: generateStepByStepNavigation(route),
+            
+            // 关键导航点
+            key_navigation_points: generateKeyNavigationPoints(route),
+            
+            // 实用导航提示
+            navigation_tips: [
+                '建议在光线充足时段进行散步',
+                '请注意交通安全，遵守交通规则',
+                '携带适量水和小食品',
+                '建议穿着舒适的步行鞋',
+                '可根据实际情况调整行走速度',
+                ...(route.analysis && route.analysis.practical_tips ? route.analysis.practical_tips : [])
+            ],
+            
+            // 紧急信息
+            emergency_info: {
+                emergency_contact: '紧急情况请拨打110或120',
+                nearest_hospital_tip: '如需查找最近医院，可使用地图搜索功能',
+                weather_reminder: '出行前请关注天气预报'
+            }
+        },
+        
+        // AI分析结果
+        ai_analysis: {
+            route_description: route.analysis ? route.analysis.route_description : '智能生成的散步路线',
+            experience_rating: route.analysis ? route.analysis.experience_rating : 'N/A',
+            recommended_highlights: route.analysis && route.analysis.recommended_waypoints ? 
+                route.analysis.recommended_waypoints.map(wp => ({
+                    name: wp.name,
+                    highlight_reason: wp.reason
+                })) : [],
+            practical_suggestions: route.analysis && route.analysis.practical_tips ? 
+                route.analysis.practical_tips : []
+        },
+        
+        // 技术信息
+        technical_info: {
+            planning_method: route.technical_info && route.technical_info.llm_guided ? 
+                'AI智能规划' : '标准规划',
+            api_provider: '高德地图 Web API',
+            coordinate_system: 'WGS84',
+            has_ai_planning_history: !!(route.technical_info && route.technical_info.planning_steps),
+            planning_steps_count: route.technical_info && route.technical_info.planning_steps ? 
+                route.technical_info.planning_steps.length : 0,
+            route_accuracy_level: route.technical_info && route.technical_info.actual_route_data ? 
+                'High' : 'Medium'
+        },
+        
+        // 兼容性信息
+        compatibility: {
+            file_format: 'JSON',
+            encoding: 'UTF-8',
+            gps_compatible: true,
+            import_instructions: '此文件可导入其他导航应用或地图应用',
+            supported_formats: ['JSON', 'GPX (可转换)', 'KML (可转换)']
+        },
+        
+        // 原始数据（供开发者使用）
+        raw_data: {
+            original_route: route.route,
+            original_analysis: route.analysis,
+            original_technical_info: route.technical_info || null
+        }
     };
     
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+    // 创建多种格式的导出选项
+    createExportModal(exportData, route);
+}
+
+// 生成路径段信息
+function generatePathSegments(route) {
+    const segments = [];
+    const allPoints = [];
     
+    // 添加起点
+    allPoints.push({
+        name: route.route.start_point.formatted_address || '起点',
+        coordinates: [route.route.start_point.longitude, route.route.start_point.latitude],
+        type: 'start'
+    });
+    
+    // 添加途经点
+    if (route.route.waypoints) {
+        route.route.waypoints.forEach(wp => {
+            allPoints.push({
+                name: wp.name,
+                coordinates: [wp.longitude || wp.location[0], wp.latitude || wp.location[1]],
+                type: 'waypoint'
+            });
+        });
+    }
+    
+    // 添加终点
+    allPoints.push({
+        name: route.route.end_point.name || '终点',
+        coordinates: [route.route.end_point.longitude, route.route.end_point.latitude],
+        type: 'end'
+    });
+    
+    // 生成路径段
+    for (let i = 0; i < allPoints.length - 1; i++) {
+        const startPoint = allPoints[i];
+        const endPoint = allPoints[i + 1];
+        
+        // 计算直线距离
+        const distance = calculateDistance(
+            { latitude: startPoint.coordinates[1], longitude: startPoint.coordinates[0] },
+            { latitude: endPoint.coordinates[1], longitude: endPoint.coordinates[0] }
+        );
+        
+        segments.push({
+            segment_id: i + 1,
+            from: {
+                name: startPoint.name,
+                coordinates: startPoint.coordinates,
+                type: startPoint.type
+            },
+            to: {
+                name: endPoint.name,
+                coordinates: endPoint.coordinates,
+                type: endPoint.type
+            },
+            estimated_distance_km: distance.toFixed(2),
+            estimated_duration_minutes: Math.round((distance * 1000) / 80), // 假设步行速度80m/min
+            segment_description: `从 ${startPoint.name} 到 ${endPoint.name}`
+        });
+    }
+    
+    return segments;
+}
+
+// 提取真实路径坐标
+function extractRealPathCoordinates(realPaths) {
+    if (!realPaths || realPaths.length === 0) return null;
+    
+    const allCoordinates = [];
+    const segmentDetails = [];
+    
+    realPaths.forEach((pathData, index) => {
+        if (pathData.path && pathData.path.length > 0) {
+            // 如果不是第一段，去除重复的起点
+            const pathToAdd = index === 0 ? pathData.path : pathData.path.slice(1);
+            allCoordinates.push(...pathToAdd);
+            
+            segmentDetails.push({
+                segment_id: index + 1,
+                segment_name: pathData.segment,
+                coordinates_count: pathData.path.length,
+                distance_meters: pathData.distance,
+                duration_seconds: pathData.duration,
+                is_fallback: pathData.isFallback || false
+            });
+        }
+    });
+    
+    return {
+        total_coordinates: allCoordinates.length,
+        coordinates: allCoordinates,
+        segment_details: segmentDetails
+    };
+}
+
+// 生成分步导航指令
+function generateStepByStepNavigation(route) {
+    const navigation = [];
+    let stepCounter = 1;
+    
+    // 起点指令
+    navigation.push({
+        step: stepCounter++,
+        instruction: `从 ${route.route.start_point.formatted_address || '起点'} 开始您的散步`,
+        coordinates: [route.route.start_point.longitude, route.route.start_point.latitude],
+        instruction_type: 'start',
+        estimated_time: '0分钟'
+    });
+    
+    // 途经点指令
+    if (route.route.waypoints) {
+        route.route.waypoints.forEach((waypoint, index) => {
+            navigation.push({
+                step: stepCounter++,
+                instruction: `前往 ${waypoint.name}`,
+                coordinates: [waypoint.longitude || waypoint.location[0], waypoint.latitude || waypoint.location[1]],
+                instruction_type: 'waypoint',
+                description: waypoint.reason || `第${index + 1}个推荐地点`,
+                suggested_action: '可在此处稍作休息，欣赏周围风景',
+                estimated_time: `约${Math.round((index + 1) * route.route.duration / 60 / (route.route.waypoints.length + 1))}分钟`
+            });
+        });
+    }
+    
+    // 终点指令
+    navigation.push({
+        step: stepCounter++,
+        instruction: `到达终点 ${route.route.end_point.name || '终点'}`,
+        coordinates: [route.route.end_point.longitude, route.route.end_point.latitude],
+        instruction_type: 'end',
+        description: '恭喜您完成此次散步！',
+        estimated_time: `约${Math.round(route.route.duration / 60)}分钟`
+    });
+    
+    return navigation;
+}
+
+// 生成关键导航点
+function generateKeyNavigationPoints(route) {
+    const keyPoints = [];
+    
+    // 起点
+    keyPoints.push({
+        point_type: 'START',
+        name: route.route.start_point.formatted_address || '起点',
+        coordinates: [route.route.start_point.longitude, route.route.start_point.latitude],
+        importance: 'HIGH',
+        landmark_info: '散步路线的起始点'
+    });
+    
+    // 重要途经点
+    if (route.route.waypoints) {
+        route.route.waypoints.forEach((waypoint, index) => {
+            keyPoints.push({
+                point_type: 'WAYPOINT',
+                name: waypoint.name,
+                coordinates: [waypoint.longitude || waypoint.location[0], waypoint.latitude || waypoint.location[1]],
+                importance: 'MEDIUM',
+                landmark_info: waypoint.reason || `推荐停留点 ${index + 1}`,
+                sequence: index + 1
+            });
+        });
+    }
+    
+    // 终点
+    keyPoints.push({
+        point_type: 'END',
+        name: route.route.end_point.name || '终点',
+        coordinates: [route.route.end_point.longitude, route.route.end_point.latitude],
+        importance: 'HIGH',
+        landmark_info: '散步路线的终点'
+    });
+    
+    return keyPoints;
+}
+
+// 创建导出模态框
+function createExportModal(exportData, route) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+        background: rgba(0,0,0,0.7); z-index: 10000; 
+        display: flex; align-items: center; justify-content: center;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: white; padding: 25px; border-radius: 12px; max-width: 600px; width: 90%; max-height: 80vh; overflow: auto;">
+            <h3 style="margin: 0 0 20px 0; color: #2c3e50; text-align: center;">
+                📁 导出详细路线信息
+            </h3>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 10px 0; color: #495057;">📊 路线概要</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; font-size: 12px;">
+                    <div><strong>总距离:</strong> ${exportData.route_summary.total_distance_km}km</div>
+                    <div><strong>预计时间:</strong> ${exportData.route_summary.estimated_duration_minutes}分钟</div>
+                    <div><strong>途经点:</strong> ${exportData.route_summary.waypoints_count}个</div>
+                    <div><strong>难度评分:</strong> ${exportData.route_summary.difficulty_rating}/10</div>
+                </div>
+            </div>
+            
+            <div style="background: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 10px 0; color: #1976d2;">📍 包含详细信息</h4>
+                <ul style="margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.6;">
+                    <li><strong>标记点信息:</strong> ${exportData.markers_detail.waypoints.length + 2}个详细标记点</li>
+                    <li><strong>路径信息:</strong> ${exportData.path_details.path_segments.length}段路径详情</li>
+                    <li><strong>导航指令:</strong> ${exportData.navigation_details.step_by_step_navigation.length}步详细导航</li>
+                    <li><strong>AI分析:</strong> 智能推荐和实用建议</li>
+                    <li><strong>技术数据:</strong> 完整的API响应和坐标信息</li>
+                </ul>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                <button onclick="downloadDetailedJSON(this)" 
+                        style="padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                    <i class="fas fa-download"></i> 下载详细JSON
+                </button>
+                <button onclick="downloadSimplifiedJSON(this)" 
+                        style="padding: 12px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                    <i class="fas fa-file-code"></i> 下载简化版
+                </button>
+                <button onclick="downloadNavigationTxt(this)" 
+                        style="padding: 12px; background: #6f42c1; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                    <i class="fas fa-route"></i> 下载导航文本
+                </button>
+                <button onclick="downloadGPXFormat(this)" 
+                        style="padding: 12px; background: #fd7e14; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                    <i class="fas fa-map"></i> 下载GPX格式
+                </button>
+            </div>
+            
+            <div style="text-align: center;">
+                <button onclick="this.closest('div').parentElement.remove()" 
+                        style="padding: 10px 30px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                    关闭
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // 将数据存储到全局变量供按钮使用
+    window.currentExportData = exportData;
+}
+
+// 下载详细JSON
+window.downloadDetailedJSON = function(button) {
+    const data = window.currentExportData;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+    downloadFile(blob, `detailed_walking_route_${Date.now()}.json`);
+    showTemporaryMessage('📁 详细路线信息已导出！包含完整的标记点、路径和导航数据', 'success');
+};
+
+// 下载简化JSON
+window.downloadSimplifiedJSON = function(button) {
+    const data = window.currentExportData;
+    const simplifiedData = {
+        route_name: data.route_metadata.route_name,
+        summary: data.route_summary,
+        markers: {
+            start: data.markers_detail.start_point,
+            waypoints: data.markers_detail.waypoints,
+            end: data.markers_detail.end_point
+        },
+        navigation: data.navigation_details.step_by_step_navigation,
+        export_time: data.route_metadata.export_time
+    };
+    
+    const blob = new Blob([JSON.stringify(simplifiedData, null, 2)], { type: 'application/json;charset=utf-8' });
+    downloadFile(blob, `simplified_walking_route_${Date.now()}.json`);
+    showTemporaryMessage('📋 简化版路线信息已导出！', 'success');
+};
+
+// 下载导航文本
+window.downloadNavigationTxt = function(button) {
+    const data = window.currentExportData;
+    let txtContent = `🚶‍♂️ ${data.route_metadata.route_name}\n`;
+    txtContent += `导出时间: ${new Date(data.route_metadata.export_time).toLocaleString()}\n`;
+    txtContent += `总距离: ${data.route_summary.total_distance_km}km\n`;
+    txtContent += `预计时间: ${data.route_summary.estimated_duration_minutes}分钟\n\n`;
+    
+    txtContent += `📍 详细导航指令:\n`;
+    txtContent += `==================\n`;
+    data.navigation_details.step_by_step_navigation.forEach(nav => {
+        txtContent += `${nav.step}. ${nav.instruction}\n`;
+        if (nav.description) txtContent += `   ${nav.description}\n`;
+        if (nav.estimated_time) txtContent += `   预计时间: ${nav.estimated_time}\n`;
+        txtContent += `\n`;
+    });
+    
+    txtContent += `💡 实用提示:\n`;
+    txtContent += `==========\n`;
+    data.navigation_details.navigation_tips.forEach(tip => {
+        txtContent += `• ${tip}\n`;
+    });
+    
+    const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+    downloadFile(blob, `navigation_instructions_${Date.now()}.txt`);
+    showTemporaryMessage('📝 导航文本已导出！可直接查看或打印', 'success');
+};
+
+// 下载GPX格式
+window.downloadGPXFormat = function(button) {
+    const data = window.currentExportData;
+    
+    let gpxContent = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="AI智能散步规划器">
+    <metadata>
+        <name>${data.route_metadata.route_name}</name>
+        <desc>AI生成的智能散步路线</desc>
+        <time>${data.route_metadata.export_time}</time>
+    </metadata>
+    
+    <trk>
+        <name>${data.route_metadata.route_name}</name>
+        <desc>总距离: ${data.route_summary.total_distance_km}km, 预计时间: ${data.route_summary.estimated_duration_minutes}分钟</desc>
+        <trkseg>
+`;
+
+    // 添加起点
+    const start = data.markers_detail.start_point;
+    gpxContent += `            <trkpt lat="${start.coordinates.latitude}" lon="${start.coordinates.longitude}">
+                <name>${start.name}</name>
+                <desc>${start.navigation_instruction}</desc>
+            </trkpt>\n`;
+    
+    // 添加途经点
+    data.markers_detail.waypoints.forEach(wp => {
+        gpxContent += `            <trkpt lat="${wp.coordinates.latitude}" lon="${wp.coordinates.longitude}">
+                <name>${wp.name}</name>
+                <desc>${wp.navigation_instruction}</desc>
+            </trkpt>\n`;
+    });
+    
+    // 添加终点
+    const end = data.markers_detail.end_point;
+    gpxContent += `            <trkpt lat="${end.coordinates.latitude}" lon="${end.coordinates.longitude}">
+                <name>${end.name}</name>
+                <desc>${end.navigation_instruction}</desc>
+            </trkpt>\n`;
+    
+    gpxContent += `        </trkseg>
+    </trk>
+    
+    <!-- 标记点 -->
+`;
+
+    // 添加标记点
+    [data.markers_detail.start_point, ...data.markers_detail.waypoints, data.markers_detail.end_point].forEach(marker => {
+        gpxContent += `    <wpt lat="${marker.coordinates.latitude}" lon="${marker.coordinates.longitude}">
+        <name>${marker.name}</name>
+        <desc>${marker.navigation_instruction}</desc>
+        <type>${marker.type}</type>
+    </wpt>\n`;
+    });
+    
+    gpxContent += `</gpx>`;
+    
+    const blob = new Blob([gpxContent], { type: 'application/gpx+xml;charset=utf-8' });
+    downloadFile(blob, `walking_route_${Date.now()}.gpx`);
+    showTemporaryMessage('🗺️ GPX格式已导出！可导入GPS设备或其他地图应用', 'success');
+};
+
+// 通用下载函数
+function downloadFile(blob, filename) {
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `walking_route_${Date.now()}.json`;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
     a.click();
-    
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    alert('路线已导出为JSON文件');
 }
 
 // 分享路线
