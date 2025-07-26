@@ -373,7 +373,7 @@ class NavigationApp {
 
         questionElement.innerHTML = `
             <div style="display: flex; align-items: center; gap: 12px; color: #2E2E2E;">
-                <span style="font-size: 18px; font-weight: 600;">正在获取下一步建议...</span>
+                <span style="font-size: 18px; font-weight: 600; line-height: 1.4;">正在获取下一步建议...</span>
             </div>
         `;
 
