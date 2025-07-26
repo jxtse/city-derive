@@ -236,6 +236,138 @@ class NavigationApp {
         }
     }
 
+    async getNextOptionsFromDify(selectedOption, selectedAction) {
+        try {
+            console.log('🔄 获取下一轮选项...', selectedOption, selectedAction);
+            
+            // 构建包含当前位置和用户选择的上下文
+            const currentLocation = this.currentPOIDetails ? 
+                `${this.currentPOIDetails.name} - ${this.currentPOIDetails.address}` : 
+                '用户当前位置';
+            
+            const contextInfo = {
+                current_location: currentLocation,
+                user_choice: selectedOption,
+                previous_action: selectedAction,
+                user_coordinates: this.userLocation
+            };
+            
+            // 显示加载状态
+            this.showLoadingInBubble();
+            
+            const response = await fetch(`${this.difyBaseUrl}/workflows/run`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.difyApiToken}`
+                },
+                body: JSON.stringify({
+                    inputs: {
+                        location: currentLocation,
+                        context: JSON.stringify(contextInfo),
+                        previous_choice: selectedOption
+                    },
+                    response_mode: "blocking",
+                    user: `navigation-user-${Date.now()}`
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Dify API调用失败: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('✅ 获取到下一轮选项:', result);
+            
+            if (result.data && result.data.outputs && result.data.outputs.task_output) {
+                const taskOutput = JSON.parse(result.data.outputs.task_output);
+                this.updateAIBubble(taskOutput);
+            } else {
+                // 如果API没有返回预期格式，生成基于当前选择的后续选项
+                this.generateFollowUpOptions(selectedOption);
+            }
+            
+        } catch (error) {
+            console.error('❌ 获取下一轮选项失败:', error);
+            // 生成基于当前选择的后续选项
+            this.generateFollowUpOptions(selectedOption);
+        }
+    }
+
+    showLoadingInBubble() {
+        const questionElement = document.getElementById('ai-question');
+        const optionsContainer = document.getElementById('options-container');
+        
+        questionElement.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px; color: #667eea;">
+                <div class="loading-spinner" style="width: 16px; height: 16px; border: 2px solid #f3f4f6; border-top: 2px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                正在获取下一步建议...
+            </div>
+        `;
+        
+        optionsContainer.innerHTML = `
+            <div style="text-align: center; padding: 20px; color: #6b7280;">
+                <div style="font-size: 14px;">🤖 AI正在思考中...</div>
+            </div>
+        `;
+    }
+
+    generateFollowUpOptions(previousChoice) {
+        console.log('🎯 生成基于选择的后续选项:', previousChoice);
+        
+        // 基于用户之前的选择生成相关的后续选项
+        const followUpMap = {
+            '水池/人工小湖': {
+                question: '您对水景很感兴趣！接下来想了解什么？',
+                choices: [
+                    { option: "水池的设计理念", next_action: "了解设计师的创意思路" },
+                    { option: "周边的休憩设施", next_action: "寻找可以休息的地方" },
+                    { option: "水景的最佳观赏角度", next_action: "找到拍摄的好位置" },
+                    { option: "附近类似的水景", next_action: "探索更多水景特色" }
+                ]
+            },
+            '雕塑或艺术装置': {
+                question: '艺术装置很有魅力！您想深入了解什么？',
+                choices: [
+                    { option: "艺术作品的创作背景", next_action: "了解艺术家和创作故事" },
+                    { option: "雕塑的材质和工艺", next_action: "学习艺术制作技术" },
+                    { option: "艺术装置的互动体验", next_action: "体验艺术与科技结合" },
+                    { option: "周边其他艺术元素", next_action: "发现更多艺术装置" }
+                ]
+            },
+            '颜色鲜明的墙面': {
+                question: '建筑色彩很吸引人！您想探索什么？',
+                choices: [
+                    { option: "建筑的色彩搭配理念", next_action: "了解色彩心理学应用" },
+                    { option: "墙面材质和质感", next_action: "触摸感受建筑材料" },
+                    { option: "不同时间的光影效果", next_action: "观察光线变化的美感" },
+                    { option: "建筑的拍照最佳角度", next_action: "寻找完美的拍摄点" }
+                ]
+            },
+            '大量绿植或独特行道树': {
+                question: '绿化景观很棒！您想了解什么？',
+                choices: [
+                    { option: "植物的种类和特色", next_action: "学习植物知识" },
+                    { option: "景观设计的生态理念", next_action: "了解可持续发展理念" },
+                    { option: "绿植的养护方法", next_action: "学习园艺技巧" },
+                    { option: "四季景观的变化", next_action: "想象不同季节的美景" }
+                ]
+            }
+        };
+        
+        const followUp = followUpMap[previousChoice] || {
+            question: '您想继续探索什么？',
+            choices: [
+                { option: "周边的商业设施", next_action: "寻找购物和餐饮" },
+                { option: "交通便利性", next_action: "了解出行方式" },
+                { option: "历史文化背景", next_action: "探索地区文化" },
+                { option: "未来发展规划", next_action: "了解区域发展前景" }
+            ]
+        };
+        
+        this.updateAIBubble(followUp);
+    }
+
     updateAIBubble(data) {
         const questionElement = document.getElementById('ai-question');
         const optionsContainer = document.getElementById('options-container');
@@ -288,10 +420,10 @@ class NavigationApp {
         // 显示选择结果消息
         this.showMessage(`您选择了：${option}`, 'success');
         
-        // 3秒后隐藏AI气泡
+        // 1.5秒后调用Dify API获取下一轮选项
         setTimeout(() => {
-            this.hideAIBubble();
-        }, 3000);
+            this.getNextOptionsFromDify(option, action);
+        }, 1500);
         
         // 执行相应的动作
         this.handleUserChoice(option, action);
