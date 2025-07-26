@@ -47,7 +47,7 @@ class NavigationSystem {
             console.log('📄 加载路线数据...');
             
             // 首先尝试从localStorage加载路线数据
-            const localRouteData = localStorage.getItem('current_route_data');
+            const localRouteData = localStorage.getItem('current_route_data.json');
             
             if (localRouteData && localRouteData !== 'null') {
                 try {
@@ -60,7 +60,7 @@ class NavigationSystem {
             } else {
                 console.log('📁 localStorage中没有路线数据，尝试加载默认文件...');
                 // 如果localStorage中没有数据，尝试加载默认文件
-                const response = await fetch('./detailed_walking_route_1753535070950.json');
+                const response = await fetch('./current_route_data.json');
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: 无法加载路线数据`);
                 }

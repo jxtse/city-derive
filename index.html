@@ -1897,8 +1897,7 @@
         // 导航按钮点击事件
         document.getElementById('navigate-btn').addEventListener('click', function() {
             // 检查是否有已规划的路线数据
-            const routeData = localStorage.getItem('current_route_data');
-            
+            const routeData = localStorage.getItem('current_route_data.json');
             console.log('🔍 检查路线数据:', routeData ? '存在' : '不存在');
             
             if (routeData && routeData !== 'null' && routeData !== '') {
