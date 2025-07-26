@@ -612,15 +612,13 @@ class NavigationApp {
         completionButton.innerHTML = `
             <button onclick="navigationApp.markStepAsCompleted()" style="
                 background: white;
-                color: black;
-                border: 2px solid #8BCA4E;
                 padding: 14px 28px;
                 border-radius: 25px;
                 font-weight: 600;
                 font-size: 16px;
                 cursor: pointer;
                 transition: all 0.3s ease;
-                box-shadow: 0 6px 20px rgba(139, 195, 74, 0.3);
+                box-shadow: 0 45px 45px 0 rgba(166, 166, 166, 0.25);
                 display: flex;
                 align-items: center;
                 gap: 8px;
@@ -719,12 +717,9 @@ class NavigationApp {
 
     setRandomAIAvatar() {
         // 使用简化的地球图标
-        const earthIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"/>
-            <path d="M12 2c-5.5 0-10 4.5-10 10s4.5 10 10 10" stroke="currentColor" stroke-width="1.5" fill="none"/>
-            <path d="M2 12h20" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M12 2c2.5 3 2.5 7 0 10s-2.5 7 0 10" stroke="currentColor" stroke-width="1.5" fill="none"/>
-        </svg>`;
+        const earthIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50" fill="none">
+  <path d="M25 4.6875C20.9826 4.6875 17.0554 5.87881 13.715 8.11077C10.3746 10.3427 7.77111 13.5151 6.23371 17.2267C4.6963 20.9384 4.29405 25.0225 5.07781 28.9628C5.86157 32.903 7.79615 36.5224 10.6369 39.3631C13.4777 42.2039 17.097 44.1384 21.0372 44.9222C24.9775 45.706 29.0616 45.3037 32.7733 43.7663C36.4849 42.2289 39.6573 39.6254 41.8892 36.285C44.1212 32.9446 45.3125 29.0174 45.3125 25C45.3068 19.6145 43.1649 14.4513 39.3568 10.6432C35.5487 6.83507 30.3855 4.69319 25 4.6875ZM12.166 36.4199L12.6582 36.0977C13.088 35.8142 13.4411 35.4289 13.6861 34.976C13.9311 34.5232 14.0604 34.0168 14.0625 33.502L14.1035 26.4258L18.1973 20.3125C18.2173 20.3279 18.2382 20.3423 18.2598 20.3555L22.1016 22.8691C22.7454 23.3235 23.5376 23.5169 24.3184 23.4102L30.4688 22.5762C31.2272 22.475 31.9222 22.099 32.4219 21.5195L36.752 16.4883C37.2362 15.9209 37.5015 15.199 37.5 14.4531V13.2168C39.6134 15.4527 41.0869 18.2157 41.7662 21.2164C42.4455 24.2171 42.3057 27.3453 41.3613 30.2734L38.209 27.3906C37.7708 26.9884 37.2268 26.7195 36.6411 26.6158C36.0553 26.512 35.4521 26.5775 34.9024 26.8047L28.9531 29.2754C28.4557 29.4842 28.0204 29.8176 27.6893 30.2435C27.3581 30.6694 27.1423 31.1735 27.0625 31.707L26.5957 34.8691C26.4835 35.6302 26.656 36.406 27.0802 37.0478C27.5044 37.6897 28.1504 38.1525 28.8945 38.3477L33.0859 39.4531L33.5469 39.916C30.1242 41.8798 26.1295 42.6043 22.2352 41.9675C18.3409 41.3307 14.7849 39.3716 12.166 36.4199Z" fill="#8BCA4E"/>
+</svg>`;
         
         const avatarElement = document.getElementById('ai-avatar');
         if (avatarElement) {
