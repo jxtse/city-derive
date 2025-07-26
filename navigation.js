@@ -433,9 +433,6 @@ class NavigationApp {
         // 更新AI气泡显示选择结果和下一步动作
         this.updateAIBubbleWithSelection(option, action);
         
-        // 显示选择结果消息
-        this.showMessage(`您选择了：${option}`, 'success');
-        
         // 1.5秒后调用Dify API获取下一轮选项
         setTimeout(() => {
             this.getNextOptionsFromDify(option, action);
