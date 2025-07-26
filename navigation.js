@@ -282,24 +282,101 @@ class NavigationApp {
     selectOption(option, action) {
         console.log('✅ 用户选择:', option, action);
         
-        // 显示选择结果
+        // 更新AI气泡显示选择结果和下一步动作
+        this.updateAIBubbleWithSelection(option, action);
+        
+        // 显示选择结果消息
         this.showMessage(`您选择了：${option}`, 'success');
         
-        // 隐藏AI气泡
+        // 3秒后隐藏AI气泡
         setTimeout(() => {
             this.hideAIBubble();
-        }, 1500);
+        }, 3000);
         
-        // 可以在这里添加更多逻辑，比如导航到相关位置
+        // 执行相应的动作
         this.handleUserChoice(option, action);
     }
 
+    updateAIBubbleWithSelection(selectedOption, nextAction) {
+        const questionElement = document.getElementById('ai-question');
+        const optionsContainer = document.getElementById('options-container');
+        
+        // 更新问题显示为选择结果
+        questionElement.innerHTML = `
+            <div style="color: #10b981; font-weight: 600; margin-bottom: 8px;">
+                ✅ 您选择了：${selectedOption}
+            </div>
+            <div style="color: #6b7280; font-size: 14px; line-height: 1.4;">
+                ${nextAction || '正在为您准备相关信息...'}
+            </div>
+        `;
+        
+        // 清空选项容器，显示确认信息
+        optionsContainer.innerHTML = `
+            <div style="text-align: center; padding: 16px; background: rgba(16, 185, 129, 0.1); border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                <div style="color: #10b981; font-size: 16px; margin-bottom: 4px;">🎯</div>
+                <div style="color: #374151; font-size: 14px; font-weight: 500;">
+                    正在为您分析相关信息...
+                </div>
+            </div>
+        `;
+    }
+
     handleUserChoice(option, action) {
-        // 根据用户选择执行相应的动作
         console.log('🎯 执行用户选择的动作:', action);
         
-        // 这里可以添加具体的导航逻辑
-        // 比如在地图上标记相关位置，或者跳转到特定功能
+        // 根据选择的选项执行不同的动作
+        switch(option) {
+            case '水池/人工小湖':
+                this.showWaterFeatureInfo();
+                break;
+            case '雕塑或艺术装置':
+                this.showArtInstallationInfo();
+                break;
+            case '颜色鲜明的墙面':
+                this.showArchitecturalFeatureInfo();
+                break;
+            case '大量绿植或独特行道树':
+                this.showGreenLandscapeInfo();
+                break;
+            default:
+                this.showGenericActionInfo(option, action);
+        }
+    }
+
+    showWaterFeatureInfo() {
+        console.log('🌊 显示水景特色信息');
+        setTimeout(() => {
+            this.showMessage('💧 水景特色：湖畔创研中心前的人工水池采用现代设计理念，营造宁静的办公氛围', 'info');
+        }, 1000);
+    }
+
+    showArtInstallationInfo() {
+        console.log('🎨 显示艺术装置信息');
+        setTimeout(() => {
+            this.showMessage('🎨 艺术元素：现代雕塑与建筑完美融合，体现创新与传统的平衡', 'info');
+        }, 1000);
+    }
+
+    showArchitecturalFeatureInfo() {
+        console.log('🏢 显示建筑特色信息');
+        setTimeout(() => {
+            this.showMessage('🏢 建筑特色：醒目的色彩搭配彰显现代商务风格，增强视觉识别度', 'info');
+        }, 1000);
+    }
+
+    showGreenLandscapeInfo() {
+        console.log('🌿 显示绿化景观信息');
+        setTimeout(() => {
+            this.showMessage('🌿 绿化景观：精心设计的景观绿化提供舒适的工作环境和休憩空间', 'info');
+        }, 1000);
+    }
+
+    showGenericActionInfo(option, action) {
+        console.log(`📋 显示通用动作信息: ${option} -> ${action}`);
+        setTimeout(() => {
+            this.showMessage(`🔍 ${action}`, 'info');
+        }, 1000);
     }
 
     updateLocationDisplay(customText = null) {
