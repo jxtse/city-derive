@@ -1,185 +1,184 @@
-import { CONFIG } from './constants.js';
-
-// 地理计算工具
-export class GeoUtils {
-    // 计算两点间距离（公里）
-    static calculateDistance(point1, point2) {
-        const lat1 = point1.latitude || point1.location?.[1];
-        const lon1 = point1.longitude || point1.location?.[0];
-        const lat2 = point2.latitude || point2.location?.[1];
-        const lon2 = point2.longitude || point2.location?.[0];
-
-        const R = 6371; // 地球半径（公里）
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
-    }
-
-    // 验证坐标有效性
-    static isValidCoordinate(lng, lat) {
-        return !isNaN(lng) && !isNaN(lat) && 
-               lng >= -180 && lng <= 180 && 
-               lat >= -90 && lat <= 90 &&
-               !(lng === 0 && lat === 0);
-    }
-
-    // 解析高德地图polyline
-    static parsePolyline(polylineStr) {
-        if (!polylineStr) return [];
-
-        const coordinates = [];
-        const coords = polylineStr.split(';');
-
-        coords.forEach(coord => {
-            const [lng, lat] = coord.split(',').map(Number);
-            if (!isNaN(lng) && !isNaN(lat)) {
-                coordinates.push([lng, lat]);
-            }
-        });
-
-        return coordinates;
-    }
-}
 
 // DOM操作工具
-export class DOMUtils {
-    // DOM操作工具函数
-    static safeAddEventListener(elementId, event, handler) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.addEventListener(event, handler);
-            return true;
-        }
-        console.warn(`⚠️ 元素不存在: ${elementId}`);
-        return false;
-    }
-
-    // 显示消息提示
-    static showMessage(message, type = 'info', duration = 3000) {
-        const messageElement = document.createElement('div');
-        messageElement.style.cssText = `
+export const DOMUtils = {
+    // 显示消息
+    showMessage(message, type = 'info', duration = 3000) {
+        const messageDiv = document.createElement('div');
+        messageDiv.style.cssText = `
             position: fixed;
             top: 20px;
             right: 20px;
             padding: 12px 20px;
             border-radius: 8px;
             color: white;
-            font-weight: 500;
-            z-index: 9999;
-            animation: slideInRight 0.3s ease-out;
-            max-width: 300px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-size: 14px;
+            z-index: 10000;
+            min-width: 200px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: opacity 0.3s ease;
         `;
 
         const colors = {
-            error: '#dc3545',
             success: '#28a745',
-            info: '#17a2b8',
-            warning: '#ffc107'
+            error: '#dc3545',
+            warning: '#ffc107',
+            info: '#17a2b8'
         };
 
-        messageElement.style.background = colors[type] || colors.info;
-        messageElement.textContent = message;
+        messageDiv.style.background = colors[type] || colors.info;
+        messageDiv.textContent = message;
 
-        // 添加滑入动画
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight {
-                from {
-                    opacity: 0;
-                    transform: translateX(100%);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateX(0);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-        document.body.appendChild(messageElement);
+        document.body.appendChild(messageDiv);
 
-        // 自动删除
         setTimeout(() => {
-            if (messageElement.parentNode) {
-                messageElement.style.opacity = '0';
-                messageElement.style.transition = 'opacity 0.3s ease';
-                setTimeout(() => {
-                    if (messageElement.parentNode) {
-                        messageElement.parentNode.removeChild(messageElement);
-                    }
-                    if (style.parentNode) {
-                        style.parentNode.removeChild(style);
-                    }
-                }, 300);
-            }
+            messageDiv.style.opacity = '0';
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.parentNode.removeChild(messageDiv);
+                }
+            }, 300);
         }, duration);
+    },
+
+    // 安全添加事件监听器
+    safeAddEventListener(elementId, event, handler) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.addEventListener(event, handler);
+        } else {
+            console.warn(`⚠️ 元素 ${elementId} 不存在`);
+        }
+    },
+
+    // 创建SVG图标
+    createSVGIcon(type, size = 24) {
+        const colors = {
+            start: '#28a745',
+            end: '#dc3545',
+            waypoint: '#17a2b8'
+        };
+
+        const color = colors[type] || colors.waypoint;
+        
+        const svg = `
+            <svg width="${size}" height="${size}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" fill="${color}" stroke="white" stroke-width="2"/>
+                <circle cx="12" cy="12" r="4" fill="white"/>
+            </svg>
+        `;
+        
+        return 'data:image/svg+xml;base64,' + btoa(svg);
     }
-}
+};
 
-// 数据验证工具
-export class ValidationUtils {
-    // 验证表单数据
-    static validatePlanningForm(formData) {
+// 地理工具
+export const GeoUtils = {
+    // 验证坐标是否有效
+    isValidCoordinate(longitude, latitude) {
+        return typeof longitude === 'number' && 
+               typeof latitude === 'number' &&
+               !isNaN(longitude) && 
+               !isNaN(latitude) &&
+               Math.abs(longitude) <= 180 &&
+               Math.abs(latitude) <= 90;
+    },
+
+    // 计算两点间距离（公里）
+    calculateDistance(point1, point2) {
+        if (!this.isValidCoordinate(point1.longitude, point1.latitude) ||
+            !this.isValidCoordinate(point2.longitude, point2.latitude)) {
+            return 0;
+        }
+
+        const R = 6371; // 地球半径（公里）
+        const dLat = this.toRadians(point2.latitude - point1.latitude);
+        const dLon = this.toRadians(point2.longitude - point1.longitude);
+        
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(this.toRadians(point1.latitude)) * 
+                  Math.cos(this.toRadians(point2.latitude)) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    },
+
+    // 角度转弧度
+    toRadians(degrees) {
+        return degrees * (Math.PI / 180);
+    },
+
+    // 解析高德地图的折线数据
+    parsePolyline(polyline) {
+        if (!polyline) return [];
+        
+        try {
+            // 简单的坐标解析
+            const coordinates = [];
+            const parts = polyline.split(';');
+            
+            parts.forEach(part => {
+                const coords = part.split(',');
+                if (coords.length >= 2) {
+                    const lng = parseFloat(coords[0]);
+                    const lat = parseFloat(coords[1]);
+                    if (this.isValidCoordinate(lng, lat)) {
+                        coordinates.push([lng, lat]);
+                    }
+                }
+            });
+            
+            return coordinates;
+        } catch (error) {
+            console.warn('⚠️ 解析折线数据失败:', error);
+            return [];
+        }
+    }
+};
+
+// 表单验证工具
+export const ValidationUtils = {
+    // 验证规划表单
+    validatePlanningForm(preferences) {
         const errors = [];
-
-        if (!formData.startLocation?.trim()) {
-            errors.push('请输入起点地址');
+        
+        if (!preferences.startLocation?.trim()) {
+            errors.push('请输入起点位置');
         }
-
-        if (!formData.city?.trim()) {
-            errors.push('请选择城市');
+        
+        if (!preferences.city?.trim()) {
+            errors.push('请输入城市名称');
         }
-
-        if (!formData.distance) {
-            errors.push('请选择期望距离');
+        
+        if (!preferences.distance) {
+            errors.push('请选择距离范围');
         }
-
-        if (!formData.preference) {
+        
+        if (!preferences.preference) {
             errors.push('请选择偏好类型');
         }
-
-        if (!formData.endType) {
+        
+        if (!preferences.endType) {
             errors.push('请选择终点类型');
         }
-
+        
         return {
             isValid: errors.length === 0,
-            errors
+            errors: errors
         };
     }
-
-    // 验证API响应
-    static validateAPIResponse(response, requiredFields = []) {
-        if (!response) {
-            return { isValid: false, error: '响应为空' };
-        }
-
-        for (const field of requiredFields) {
-            if (!(field in response)) {
-                return { isValid: false, error: `缺少必需字段: ${field}` };
-            }
-        }
-
-        return { isValid: true };
-    }
-}
+};
 
 // 日期时间工具
-export class DateTimeUtils {
+export const DateTimeUtils = {
     // 格式化时间戳
-    static formatTimestamp(timestamp) {
-        return new Date(timestamp).toLocaleTimeString().substring(0, 8);
+    formatTimestamp(timestamp) {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString('zh-CN', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
     }
-
-    // 计算持续时间
-    static calculateDuration(startTime, endTime = Date.now()) {
-        const duration = Math.floor((endTime - startTime) / 1000);
-        const minutes = Math.floor(duration / 60);
-        const seconds = duration % 60;
-        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-}
+};
