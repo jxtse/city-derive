@@ -4335,7 +4335,7 @@ function initializeApp() {
 }
 
 // 探索模式功能
-/* function startExploreMode() {
+function startExploreMode() {
     console.log('🧭 启动探索模式...');
     
     // 检查地图是否已初始化
@@ -4647,7 +4647,7 @@ function addQuickRouteMarkers(startPoint, endPoint) {
     
     markers.push(startMarker, endMarker);
     map.add([startMarker, endMarker]);
-} */
+}
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', initializeApp); 

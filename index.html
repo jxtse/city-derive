@@ -1508,9 +1508,10 @@
             const closePanelBtn = document.getElementById('close-panel-btn');
             const closeResultPanelBtn = document.getElementById('close-result-panel-btn');
 
-            // 智能规划按钮点击事件 - 跳转到navigation.html
+            // 打开规划面板
             floatingBtn.addEventListener('click', function() {
-                window.location.href = 'navigation.html';
+                plannerPanel.classList.add('open');
+                resultPanel.classList.remove('open');
             });
 
             // 探索模式按钮点击事件
