@@ -47,7 +47,7 @@ class NavigationSystem {
             console.log('📄 加载路线数据...');
             
             // 首先尝试从localStorage加载路线数据
-            const localRouteData = localStorage.getItem('current_route_data.json');
+            const localRouteData = localStorage.getItem('current_route_data');
             
             if (localRouteData && localRouteData !== 'null') {
                 try {
