@@ -63,12 +63,41 @@
             font-weight: 300;
         }
         
+        /* 探索模式浮动按钮 */
+        .floating-explore-btn {
+            position: fixed;
+            left: calc(50% - 80px);
+            bottom: 40px;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border-radius: 50%;
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.5);
+            border: none;
+            cursor: pointer;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        .floating-explore-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 14px 40px rgba(40, 167, 69, 0.7);
+        }
+
+        .floating-explore-btn i {
+            color: white;
+            font-size: 2rem;
+        }
+
         /* 智能规划浮动按钮 */
         .floating-planner-btn {
             position: fixed;
-            left: 50%;
+            left: calc(50% + 20px);
             bottom: 40px;
-            transform: translateX(-50%);
             width: 120px;
             height: 120px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -357,6 +386,18 @@
             50% {
                 transform: scale(1.05);
                 box-shadow: 0 12px 40px rgba(102, 126, 234, 0.6);
+            }
+        }
+
+        /* 探索模式按钮脉冲动画 */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 10px 30px rgba(40, 167, 69, 0.4);
+            }
+            50% {
+                transform: scale(1.03);
+                box-shadow: 0 12px 35px rgba(40, 167, 69, 0.6);
             }
         }
 
@@ -972,16 +1013,30 @@
                 left: -100vw;
             }
 
-            .floating-planner-btn {
-                width: 100px;
-                height: 100px;
-                left: 50%;
+            .floating-explore-btn {
+                width: 80px;
+                height: 80px;
+                left: calc(50% - 60px);
                 bottom: 20px;
-                transform: translateX(-50%);
+            }
+
+            .floating-explore-btn:hover {
+                transform: scale(1.1);
+            }
+
+            .floating-explore-btn i {
+                font-size: 1.5rem;
+            }
+
+            .floating-planner-btn {
+                width: 90px;
+                height: 90px;
+                left: calc(50% + 10px);
+                bottom: 20px;
             }
 
             .floating-planner-btn:hover {
-                transform: translateX(-50%) scale(1.1);
+                transform: scale(1.1);
             }
 
             .floating-planner-btn i {
@@ -1121,6 +1176,11 @@
     <div id="main-map-container">
         <div id="map"></div>
     </div>
+
+    <!-- 探索模式浮动按钮 -->
+    <button class="floating-explore-btn" id="floating-explore-btn" title="开启探索模式">
+        <i class="fas fa-compass"></i>
+    </button>
 
     <!-- 智能规划浮动按钮 -->
     <button class="floating-planner-btn" id="floating-planner-btn" title="开启AI智能规划">
@@ -1412,6 +1472,7 @@
         // 面板控制脚本
         document.addEventListener('DOMContentLoaded', function() {
             const floatingBtn = document.getElementById('floating-planner-btn');
+            const exploreBtn = document.getElementById('floating-explore-btn');
             const plannerPanel = document.getElementById('planner-panel');
             const resultPanel = document.getElementById('result-panel');
             const closePanelBtn = document.getElementById('close-panel-btn');
@@ -1421,6 +1482,11 @@
             floatingBtn.addEventListener('click', function() {
                 plannerPanel.classList.add('open');
                 resultPanel.classList.remove('open');
+            });
+
+            // 探索模式按钮点击事件
+            exploreBtn.addEventListener('click', function() {
+                startExploreMode();
             });
 
             // 关闭规划面板

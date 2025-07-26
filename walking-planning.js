@@ -3826,5 +3826,320 @@ function initializeApp() {
     }
 }
 
+// 探索模式功能
+function startExploreMode() {
+    console.log('🧭 启动探索模式...');
+    
+    // 检查地图是否已初始化
+    if (!map) {
+        showTemporaryMessage('⚠️ 地图未初始化，请稍后再试', 'warning');
+        return;
+    }
+    
+    // 清除现有标记
+    clearMap();
+    
+    // 获取当前地图中心点
+    const center = map.getCenter();
+    const centerLng = center.getLng();
+    const centerLat = center.getLat();
+    
+    console.log(`🌍 当前地图中心: (${centerLng}, ${centerLat})`);
+    
+    // 显示探索模式提示
+    showTemporaryMessage('🧭 探索模式已启动！正在搜索周边有趣的地点...', 'info');
+    
+    // 搜索周边有趣的地点
+    exploreNearbyPOIs(centerLng, centerLat);
+}
+
+// 探索周边POI
+async function exploreNearbyPOIs(longitude, latitude) {
+    try {
+        console.log('🔍 开始探索周边地点...');
+        
+        // 定义探索关键词（涵盖各种有趣的地点）
+        const exploreKeywords = [
+            '景点|公园|广场',
+            '咖啡厅|餐厅|美食',
+            '博物馆|图书馆|文化',
+            '商场|购物|娱乐',
+            '健身|运动|休闲'
+        ];
+        
+        let allPOIs = [];
+        
+        // 逐个搜索不同类型的地点
+        for (let i = 0; i < exploreKeywords.length; i++) {
+            try {
+                const result = await routeService.searchNearbyPOIs(longitude, latitude, exploreKeywords[i], 2000);
+                if (result.success && result.pois) {
+                    // 为每个POI添加类型标签
+                    const typedPOIs = result.pois.map(poi => ({
+                        ...poi,
+                        explore_category: getExploreCategory(exploreKeywords[i])
+                    }));
+                    allPOIs.push(...typedPOIs);
+                }
+                // 添加延迟避免API频率限制
+                await new Promise(resolve => setTimeout(resolve, 200));
+            } catch (error) {
+                console.warn(`⚠️ 搜索 ${exploreKeywords[i]} 失败:`, error);
+            }
+        }
+        
+        if (allPOIs.length === 0) {
+            showTemporaryMessage('⚠️ 周边暂未发现有趣的地点，请移动地图到其他区域', 'warning');
+            return;
+        }
+        
+        // 去重和筛选
+        const uniquePOIs = removeDuplicatePOIs(allPOIs);
+        const selectedPOIs = selectBestExplorePOIs(uniquePOIs);
+        
+        console.log(`✅ 发现 ${selectedPOIs.length} 个有趣的探索地点`);
+        
+        // 在地图上显示探索地点
+        displayExplorePOIs(selectedPOIs);
+        
+        // 显示探索结果统计
+        showExploreResults(selectedPOIs);
+        
+    } catch (error) {
+        console.error('❌ 探索模式失败:', error);
+        showTemporaryMessage('❌ 探索模式失败，请重试', 'error');
+    }
+}
+
+// 获取探索分类
+function getExploreCategory(keywords) {
+    if (keywords.includes('景点')) return '🏞️ 景点';
+    if (keywords.includes('咖啡')) return '☕ 美食';
+    if (keywords.includes('博物馆')) return '🏛️ 文化';
+    if (keywords.includes('商场')) return '🛍️ 购物';
+    if (keywords.includes('健身')) return '🏃 运动';
+    return '📍 其他';
+}
+
+// 去重POI
+function removeDuplicatePOIs(pois) {
+    const seen = new Set();
+    return pois.filter(poi => {
+        const key = `${poi.name}_${poi.location[0]}_${poi.location[1]}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
+// 选择最佳探索POI
+function selectBestExplorePOIs(pois) {
+    // 按距离和评分排序，选择最多15个地点
+    return pois
+        .filter(poi => poi.location && poi.location.length >= 2)
+        .sort((a, b) => {
+            const distanceA = parseInt(a.distance) || 999999;
+            const distanceB = parseInt(b.distance) || 999999;
+            return distanceA - distanceB;
+        })
+        .slice(0, 15);
+}
+
+// 在地图上显示探索地点
+function displayExplorePOIs(pois) {
+    console.log('🗺️ 在地图上显示探索地点...');
+    
+    pois.forEach((poi, index) => {
+        try {
+            // 根据类别选择图标颜色
+            let iconColor = '#17a2b8'; // 默认蓝色
+            if (poi.explore_category.includes('景点')) iconColor = '#28a745';
+            else if (poi.explore_category.includes('美食')) iconColor = '#fd7e14';
+            else if (poi.explore_category.includes('文化')) iconColor = '#6f42c1';
+            else if (poi.explore_category.includes('购物')) iconColor = '#e83e8c';
+            else if (poi.explore_category.includes('运动')) iconColor = '#20c997';
+            
+            // 创建自定义图标
+            const iconSvg = `
+                <svg width="24" height="24" viewBox="0 0 640 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M128 252.6C128 148.4 214 64 320 64C426 64 512 148.4 512 252.6C512 371.9 391.8 514.9 341.6 569.4C329.8 582.2 310.1 582.2 298.3 569.4C248.1 514.9 127.9 371.9 127.9 252.6zM320 320C355.3 320 384 291.3 384 256C384 220.7 355.3 192 320 192C284.7 192 256 220.7 256 256C256 291.3 284.7 320 320 320z" fill="${iconColor}"/>
+                </svg>
+            `;
+            
+            const iconDataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(iconSvg)));
+            
+            const marker = new AMap.Marker({
+                position: new AMap.LngLat(poi.location[0], poi.location[1]),
+                icon: new AMap.Icon({
+                    size: new AMap.Size(24, 24),
+                    image: iconDataUrl
+                }),
+                title: poi.name
+            });
+            
+            // 创建信息窗体
+            const infoContent = `
+                <div style="padding: 12px; max-width: 250px;">
+                    <h4 style="margin: 0 0 8px 0; color: #2c3e50; font-size: 14px;">
+                        ${poi.explore_category} ${poi.name}
+                    </h4>
+                    <p style="margin: 0 0 5px 0; color: #7f8c8d; font-size: 12px; line-height: 1.4;">
+                        ${poi.address || ''}
+                    </p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                        <span style="color: #28a745; font-size: 11px; font-weight: 500;">
+                            距离: ${poi.distance}m
+                        </span>
+                        <button onclick="planRouteToExplorePoint('${poi.name}', ${poi.location[0]}, ${poi.location[1]})" 
+                                style="background: ${iconColor}; color: white; border: none; padding: 4px 8px; 
+                                       border-radius: 4px; font-size: 10px; cursor: pointer;">
+                            前往
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            const infoWindow = new AMap.InfoWindow({
+                content: infoContent,
+                offset: new AMap.Pixel(0, -24)
+            });
+            
+            marker.on('click', () => {
+                infoWindow.open(map, marker.getPosition());
+            });
+            
+            markers.push(marker);
+            map.add(marker);
+            
+        } catch (error) {
+            console.warn(`⚠️ 添加探索地点标记失败: ${poi.name}`, error);
+        }
+    });
+    
+    // 调整地图视野以包含所有标记
+    if (markers.length > 0) {
+        map.setFitView(markers, false, [50, 50, 50, 50]);
+    }
+    
+    console.log(`✅ 成功显示 ${markers.length} 个探索地点`);
+}
+
+// 显示探索结果
+function showExploreResults(pois) {
+    const categoryStats = {};
+    pois.forEach(poi => {
+        const category = poi.explore_category;
+        categoryStats[category] = (categoryStats[category] || 0) + 1;
+    });
+    
+    let statsText = `🧭 探索完成！发现 ${pois.length} 个有趣地点：\n`;
+    Object.entries(categoryStats).forEach(([category, count]) => {
+        statsText += `${category}: ${count}个  `;
+    });
+    
+    showTemporaryMessage(statsText, 'success');
+}
+
+// 规划到探索地点的路线
+window.planRouteToExplorePoint = function(poiName, lng, lat) {
+    console.log(`🎯 规划到探索地点的路线: ${poiName}`);
+    
+    // 获取当前地图中心作为起点
+    const center = map.getCenter();
+    const startPoint = {
+        name: '当前位置',
+        longitude: center.getLng(),
+        latitude: center.getLat()
+    };
+    
+    const endPoint = {
+        name: poiName,
+        longitude: lng,
+        latitude: lat
+    };
+    
+    // 规划路线
+    planQuickRoute(startPoint, endPoint);
+};
+
+// 快速路线规划
+async function planQuickRoute(startPoint, endPoint) {
+    try {
+        console.log('🛣️ 开始快速路线规划...');
+        
+        const result = await routeService.planWalkingRoute(startPoint, endPoint);
+        
+        if (result.success) {
+            // 清除现有路线
+            if (polyline) {
+                map.remove(polyline);
+                polyline = null;
+            }
+            
+            // 显示简单路线
+            const path = [
+                [startPoint.longitude, startPoint.latitude],
+                [endPoint.longitude, endPoint.latitude]
+            ];
+            
+            polyline = new AMap.Polyline({
+                path: path,
+                strokeWeight: 4,
+                strokeColor: "#ff4444",
+                strokeOpacity: 0.8,
+                lineJoin: 'round',
+                lineCap: 'round'
+            });
+            map.add(polyline);
+            
+            // 添加起点和终点标记
+            addQuickRouteMarkers(startPoint, endPoint);
+            
+            // 调整视野
+            map.setFitView([...markers, polyline], false, [30, 30, 30, 30]);
+            
+            const distance = (result.distance / 1000).toFixed(1);
+            const duration = Math.round(result.duration / 60);
+            
+            showTemporaryMessage(`✅ 路线规划成功！距离: ${distance}km，步行约${duration}分钟`, 'success');
+            
+        } else {
+            showTemporaryMessage('❌ 路线规划失败，请重试', 'error');
+        }
+        
+    } catch (error) {
+        console.error('❌ 快速路线规划失败:', error);
+        showTemporaryMessage('❌ 路线规划失败，请重试', 'error');
+    }
+}
+
+// 添加快速路线标记
+function addQuickRouteMarkers(startPoint, endPoint) {
+    // 起点标记
+    const startIcon = createCustomIcon('start', 28);
+    const startMarker = new AMap.Marker({
+        position: new AMap.LngLat(startPoint.longitude, startPoint.latitude),
+        icon: new AMap.Icon({
+            size: new AMap.Size(28, 28),
+            image: startIcon
+        }),
+        title: startPoint.name
+    });
+    
+    // 终点标记
+    const endIcon = createCustomIcon('end', 28);
+    const endMarker = new AMap.Marker({
+        position: new AMap.LngLat(endPoint.longitude, endPoint.latitude),
+        icon: new AMap.Icon({
+            size: new AMap.Size(28, 28),
+            image: endIcon
+        }),
+        title: endPoint.name
+    });
+    
+    markers.push(startMarker, endMarker);
+    map.add([startMarker, endMarker]);
+}
+
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', initializeApp); 
