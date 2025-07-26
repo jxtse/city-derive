@@ -1,10 +1,15 @@
+
 modules = ["python-base-3.13"]
+
 [[ports]]
 localPort = 5000
 externalPort = 80
-run = "node index.js"
 
 [nix]
+
+[deployment]
+run = ["python", "-m", "http.server", "5000"]
+deploymentTarget = "gce"
 
 [workflows]
 runButton = "Start Web Server"
