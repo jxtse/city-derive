@@ -176,69 +176,7 @@
             transform: translateX(4px);
         }
 
-        /* 底部控制栏 */
-        .bottom-controls {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 16px 20px;
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .location-info {
-            flex: 1;
-            font-size: 13px;
-            color: #6b7280;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .location-status {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #10b981;
-            animation: pulse 2s infinite;
-        }
-
-        .control-btn {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .control-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-
-        .control-btn.secondary {
-            background: rgba(107, 114, 128, 0.1);
-            color: #374151;
-        }
-
-        .control-btn.secondary:hover {
-            background: rgba(107, 114, 128, 0.2);
-            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.2);
-        }
+        
 
         /* 加载状态 */
         .loading-overlay {
@@ -324,17 +262,7 @@
                 top: 40px;
             }
 
-            .bottom-controls {
-                padding: 12px 16px;
-                flex-wrap: wrap;
-            }
-
-            .location-info {
-                order: 3;
-                width: 100%;
-                margin-top: 8px;
-                text-align: center;
-            }
+            
         }
     </style>
 </head>
@@ -369,19 +297,7 @@
         </div>
     </div>
 
-    <!-- 底部控制栏 -->
-    <div class="bottom-controls">
-        <div class="location-info">
-            <div class="location-status"></div>
-            <span id="location-text">正在获取位置信息...</span>
-        </div>
-        <button class="control-btn secondary" onclick="refreshLocation()">
-            📍 刷新位置
-        </button>
-        <button class="control-btn" onclick="showAIBubble()">
-            🤖 AI问答
-        </button>
-    </div>
+    
 
     <script src="navigation.js"></script>
 </body>
