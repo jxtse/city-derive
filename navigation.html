@@ -38,20 +38,20 @@
         /* AI问答气泡 - 按照图片设计优化 */
         .ai-chat-bubble {
             position: fixed;
-            top: 50px;
+            top: 40px;
             left: 50%;
             transform: translateX(-50%);
-            max-width: 420px;
-            width: calc(100% - 32px);
-            background: rgba(255, 255, 255, 0.95);
+            max-width: 390px;
+            width: calc(100% - 24px);
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
-            border-radius: 24px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-            border: 1px solid rgba(139, 195, 74, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(139, 195, 74, 0.2);
             z-index: 1000;
-            padding: 24px;
+            padding: 20px;
             display: none;
-            animation: slideDown 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+            animation: slideDown 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .ai-chat-bubble.show {
@@ -61,22 +61,22 @@
         .ai-header {
             display: flex;
             align-items: flex-start;
-            gap: 16px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
         .ai-avatar {
-            width: 48px;
-            height: 48px;
+            width: 42px;
+            height: 42px;
             background: linear-gradient(135deg, #8BC34A, #689F38);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 20px;
+            font-size: 18px;
             flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(139, 195, 74, 0.3);
+            box-shadow: 0 2px 8px rgba(139, 195, 74, 0.3);
         }
 
         .ai-question-container {
@@ -121,19 +121,19 @@
         .options-container {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
         }
 
         .option-item {
             background: #E8F5E8;
             border: none;
-            border-radius: 20px;
-            padding: 18px 24px;
+            border-radius: 16px;
+            padding: 16px 20px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .option-item:nth-child(1) {
@@ -153,62 +153,30 @@
         }
 
         .option-item:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .option-item:nth-child(1):hover {
-            box-shadow: 0 8px 25px rgba(139, 195, 74, 0.3);
-        }
-
-        .option-item:nth-child(2):hover {
-            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.3);
-        }
-
-        .option-item:nth-child(3):hover {
-            box-shadow: 0 8px 25px rgba(156, 39, 176, 0.3);
-        }
-
-        .option-item:nth-child(4):hover {
-            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.3);
+            opacity: 0.9;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
         }
 
         .option-text {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 500;
             color: #2E2E2E;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            line-height: 1.4;
+            line-height: 1.3;
         }
 
         .option-arrow {
-            font-size: 20px;
+            font-size: 18px;
             color: #666;
-            transition: all 0.3s ease;
-            opacity: 0.7;
+            transition: all 0.2s ease;
+            opacity: 0.8;
         }
 
         .option-item:hover .option-arrow {
             opacity: 1;
-            transform: translateX(6px);
-        }
-
-        .option-item:nth-child(1):hover .option-arrow {
-            color: #689F38;
-        }
-
-        .option-item:nth-child(2):hover .option-arrow {
-            color: #1976D2;
-        }
-
-        .option-item:nth-child(3):hover .option-arrow {
-            color: #7B1FA2;
-        }
-
-        .option-item:nth-child(4):hover .option-arrow {
-            color: #F57C00;
+            transform: translateX(3px);
         }
 
         
