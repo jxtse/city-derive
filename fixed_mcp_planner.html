@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 智能散步路线规划器</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://webapi.amap.com/maps?v=1.4.15&&key=c9e4a3040fef05c4084a21c8a357d37f"></script>
+    <style>
+        /* 重新设计的主要样式 */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        /* 全屏地图容器 */
+        #main-map-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 顶部状态栏 */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95));
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .app-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.8rem;
+            font-weight: 300;
+        }
+        
+        /* 智能规划浮动按钮 */
+        .floating-planner-btn {
+            position: fixed;
+            right: 30px;
+            bottom: 30px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+            border: none;
+            cursor: pointer;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            animation: breathe 3s infinite ease-in-out;
+        }
+
+        .floating-planner-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        .floating-planner-btn i {
+            color: white;
+            font-size: 1.8rem;
+        }
+
+        /* 规划面板 */
+        .planner-panel {
+            position: fixed;
+            right: -450px;
+            top: 60px;
+            bottom: 0;
+            width: 450px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.2);
+            z-index: 1002;
+            transition: right 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow-y: auto;
+        }
+
+        .planner-panel.open {
+            right: 0;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .panel-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .close-panel-btn {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .close-panel-btn:hover {
+            opacity: 1;
+        }
+
+        .panel-content {
+            padding: 30px;
+        }
+        
+        /* 表单样式重新设计 */
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+        
+        .form-group input, 
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+            color: #333;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus, 
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .plan-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.3);
+        }
+        
+        .plan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(40, 167, 69, 0.4);
+        }
+        
+        .plan-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* AI终端面板 */
+        .ai-terminal {
+            background: linear-gradient(135deg, #0c1622 0%, #1a2332 50%, #0f1419 100%);
+            border-radius: 12px;
+            margin-top: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid #333;
+            font-family: 'Courier New', 'Monaco', monospace;
+            position: relative;
+            display: none;
+        }
+        
+        .terminal-header {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #4a5568;
+        }
+        
+        .terminal-buttons {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .terminal-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .terminal-btn.close {
+            background: #ff5f56;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .terminal-btn.minimize {
+            background: #ffbd2e;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .terminal-btn.maximize {
+            background: #27ca3f;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .terminal-title {
+            color: #a0aec0;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .terminal-status {
+            background: #4299e1;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        .terminal-content {
+            padding: 15px;
+            min-height: 120px;
+            max-height: 300px;
+            overflow-y: auto;
+            position: relative;
+            font-size: 10px;
+        }
+        
+        /* 结果面板 */
+        .result-panel {
+            position: fixed;
+            left: -500px;
+            top: 60px;
+            bottom: 0;
+            width: 500px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            box-shadow: 5px 0 30px rgba(0, 0, 0, 0.2);
+            z-index: 1002;
+            transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow-y: auto;
+            display: none;
+        }
+
+        .result-panel.open {
+            left: 0;
+            display: block;
+        }
+
+        /* 地图控制按钮 */
+        .map-controls {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1001;
+        }
+
+        .map-control-btn {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            min-width: 100px;
+        }
+
+        .map-control-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 浮动按钮呼吸动画 */
+        @keyframes breathe {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 12px 40px rgba(102, 126, 234, 0.6);
+            }
+        }
+
+        /* 终端相关样式保持不变 */
+        .terminal-line {
+            margin: 6px 0;
+            display: flex;
+            align-items: flex-start;
+            animation: slideInLeft 0.5s ease-out;
+            font-size: 10px;
+        }
+        
+        .prompt {
+            color: #4299e1;
+            font-weight: 700;
+            margin-right: 8px;
+            min-width: 60px;
+            font-size: 9px;
+        }
+        
+        .system-info .loading-text {
+            color: #68d391;
+            animation: blink 1.5s infinite;
+        }
+        
+        .main-status .typewriter {
+            color: #f7fafc;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .detail-status .detail-text {
+            color: #a0aec0;
+            font-size: 10px;
+            opacity: 0.8;
+        }
+        
+        /* Console日志样式 */
+        .console-logs {
+            margin: 8px 0;
+            border-left: 2px solid #4299e1;
+            padding-left: 8px;
+        }
+        
+        .console-log {
+            margin: 4px 0;
+            display: flex;
+            align-items: flex-start;
+            animation: fadeInUp 0.3s ease-out;
+            font-size: 9px;
+        }
+        
+        .log-timestamp {
+            color: #718096;
+            font-size: 8px;
+            margin-right: 6px;
+            min-width: 50px;
+        }
+        
+        .log-level {
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 7px;
+            font-weight: 600;
+            margin-right: 6px;
+            min-width: 35px;
+            text-align: center;
+        }
+        
+        .log-level.info {
+            background: #3182ce;
+            color: white;
+        }
+        
+        .log-level.success {
+            background: #38a169;
+            color: white;
+        }
+        
+        .log-level.warning {
+            background: #d69e2e;
+            color: white;
+        }
+        
+        .log-level.error {
+            background: #e53e3e;
+            color: white;
+        }
+        
+        .log-level.debug {
+            background: #805ad5;
+            color: white;
+        }
+        
+        .log-content {
+            color: #e2e8f0;
+            font-size: 9px;
+            flex: 1;
+        }
+        
+        /* AI步骤容器 */
+        .planning-steps {
+            margin-top: 12px;
+            border-top: 1px solid #4a5568;
+            padding-top: 12px;
+        }
+        
+        .section-header .section-title {
+            color: #9f7aea;
+            font-weight: 600;
+            font-size: 10px;
+        }
+        
+        .steps-container {
+            margin-left: 15px;
+        }
+        
+        .step-item {
+            margin: 6px 0;
+            padding: 6px 10px;
+            background: rgba(79, 209, 197, 0.1);
+            border-left: 3px solid #4fd1c5;
+            border-radius: 0 6px 6px 0;
+            animation: slideInRight 0.5s ease-out;
+            position: relative;
+        }
+        
+        .step-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+        
+        .step-title {
+            color: #4fd1c5;
+            font-weight: 600;
+            font-size: 10px;
+        }
+        
+        .step-status {
+            font-size: 8px;
+            padding: 2px 4px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        
+        .step-status.pending {
+            background: #fbd38d;
+            color: #744210;
+        }
+        
+        .step-status.running {
+            background: #63b3ed;
+            color: #1a365d;
+            animation: pulse 1s infinite;
+        }
+        
+        .step-status.completed {
+            background: #68d391;
+            color: #1a365d;
+        }
+        
+        .step-status.failed {
+            background: #fc8181;
+            color: #742a2a;
+        }
+        
+        .step-description {
+            color: #cbd5e0;
+            font-size: 9px;
+            margin-top: 3px;
+        }
+        
+        .step-detail {
+            color: #a0aec0;
+            font-size: 8px;
+            margin-top: 3px;
+            padding: 3px 6px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        /* 进度条样式 */
+        .progress-container {
+            margin: 12px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #2d3748;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+            margin-top: 6px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4299e1 0%, #9f7aea 50%, #4fd1c5 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+        
+        .progress-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(66, 153, 225, 0.6) 50%, transparent 100%);
+            animation: progressGlow 2s infinite;
+        }
+        
+        .progress-label {
+            color: #a0aec0;
+            font-size: 9px;
+        }
+        
+        /* 底部状态栏 */
+        .terminal-footer {
+            background: #1a202c;
+            padding: 4px 12px;
+            border-top: 1px solid #4a5568;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 8px;
+        }
+        
+        .footer-info {
+            color: #718096;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .footer-status {
+            color: #68d391;
+            font-weight: 600;
+            padding: 2px 6px;
+            background: rgba(104, 211, 145, 0.2);
+            border-radius: 4px;
+        }
+        
+        /* 动画效果保持 */
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        
+        @keyframes progressGlow {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* Dify智能问答卡片样式 */
+        .dify-card {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 450px;
+            max-width: calc(100vw - 40px);
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            z-index: 1003;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: none;
+        }
+
+        .dify-card.show {
+            display: block;
+            animation: slideInFromTop 0.4s ease-out;
+        }
+
+        .dify-card.minimized .dify-content {
+            display: none;
+        }
+
+        .dify-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dify-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dify-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dify-minimize-btn,
+        .dify-close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dify-minimize-btn:hover,
+        .dify-close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .dify-content {
+            padding: 24px;
+        }
+
+        .dify-input-section {
+            margin-bottom: 20px;
+        }
+
+        .dify-input-group {
+            margin-bottom: 16px;
+        }
+
+        .dify-input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+
+        .dify-input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: white;
+            color: #333;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .dify-input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .dify-submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .dify-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .dify-submit-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .dify-loading {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        .loading-text {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .dify-question-section {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .dify-question {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .dify-question::before {
+            content: "❓";
+            font-size: 1.2rem;
+        }
+
+        .dify-choices-section {
+            margin-bottom: 20px;
+        }
+
+        .choices-container {
+            display: grid;
+            gap: 12px;
+        }
+
+        .choice-item {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+        }
+
+        .choice-item.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .choice-option {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .choice-option::before {
+            content: "🔘";
+            font-size: 1rem;
+        }
+
+        .choice-action {
+            color: #6c757d;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .choice-item.selected .choice-action {
+            display: block;
+            animation: fadeInDown 0.3s ease-out;
+        }
+
+        .dify-result-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .result-content {
+            margin-bottom: 16px;
+        }
+
+        .dify-restart-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0 auto;
+        }
+
+        .dify-restart-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        /* 动画效果 */
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .planner-panel {
+                width: 100vw;
+                right: -100vw;
+            }
+
+            .result-panel {
+                width: 100vw;
+                left: -100vw;
+            }
+
+            .floating-planner-btn {
+                width: 60px;
+                height: 60px;
+                right: 20px;
+                bottom: 20px;
+            }
+
+            .floating-planner-btn i {
+                font-size: 1.5rem;
+            }
+
+            .app-title {
+                font-size: 1.2rem;
+            }
+
+            .app-subtitle {
+                display: none;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .map-controls {
+                right: 10px;
+                top: 70px;
+            }
+
+            .map-control-btn {
+                padding: 8px;
+                font-size: 0.8rem;
+                min-width: 80px;
+            }
+
+            .dify-card {
+                width: calc(100vw - 20px);
+                top: 70px;
+            }
+
+            .dify-content {
+                padding: 16px;
+            }
+        }
+        
+        /* 可展开内容样式 */
+        .expandable-section {
+            margin-top: 8px;
+        }
+        
+        .expandable-section details {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .expandable-section details:hover {
+            background: rgba(0, 0, 0, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .expandable-section details[open] {
+            background: rgba(0, 0, 0, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .expandable-section summary {
+            padding: 6px 10px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.3s ease;
+            border-radius: 3px;
+            font-size: 10px;
+        }
+        
+        .expandable-section summary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .expandable-section summary::marker {
+            content: "▶ ";
+        }
+        
+        .expandable-section details[open] summary::marker {
+            content: "▼ ";
+        }
+        
+        /* 特定内容类型的样式 */
+        .technical-detail {
+            border: 1px solid rgba(108, 117, 125, 0.3);
+            background: rgba(248, 249, 250, 0.1) !important;
+            font-family: 'Courier New', monospace !important;
+            color: #e2e8f0 !important;
+            line-height: 1.4;
+            font-size: 8px !important;
+        }
+        
+        .llm-output {
+            border: 1px solid rgba(111, 66, 193, 0.3);
+            background: rgba(111, 66, 193, 0.1) !important;
+            color: #e2e8f0 !important;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            font-size: 8px !important;
+        }
+        
+        .poi-results {
+            border: 1px solid rgba(32, 201, 151, 0.3);
+            background: rgba(32, 201, 151, 0.1) !important;
+            color: #e2e8f0 !important;
+            font-size: 8px !important;
+        }
+        
+        .poi-results .poi-item {
+            margin: 4px 0;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+            border-left: 3px solid #20c997;
+            animation: slideInFromLeft 0.3s ease-out;
+            animation-delay: calc(0.1s * var(--poi-index, 0));
+        }
+        
+        .route-details {
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            background: rgba(40, 167, 69, 0.1) !important;
+            color: #e2e8f0 !important;
+            font-size: 8px !important;
+        }
+        
+        /* 打字机效果 */
+        .typewriter::after {
+            content: '|';
+            animation: blink 1s infinite;
+            color: #4299e1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 主地图容器 -->
+    <div id="main-map-container">
+        <div id="map"></div>
+    </div>
+
+    <!-- 智能规划浮动按钮 -->
+    <button class="floating-planner-btn" id="floating-planner-btn" title="开启AI智能规划">
+        <i class="fas fa-brain"></i>
+    </button>
+
+    <!-- Dify智能问答卡片 -->
+    <div class="dify-card" id="dify-card">
+        <div class="dify-header">
+            <div class="dify-title">
+                <i class="fas fa-robot"></i>
+                AI智能问答
+            </div>
+            <div class="dify-controls">
+                <button class="dify-minimize-btn" id="dify-minimize-btn" title="最小化">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button class="dify-close-btn" id="dify-close-btn" title="关闭">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="dify-content" id="dify-content">
+            <!-- 输入区域 -->
+            <div class="dify-input-section" id="dify-input-section">
+                <div class="dify-input-group">
+                    <label for="dify-location-input">🏠 请描述您的位置或情况：</label>
+                    <input type="text" id="dify-location-input" placeholder="例如：北京大学南门" maxlength="200">
+                </div>
+                <button class="dify-submit-btn" id="dify-submit-btn">
+                    <i class="fas fa-paper-plane"></i>
+                    获取AI建议
+                </button>
+            </div>
+            
+            <!-- 加载状态 -->
+            <div class="dify-loading" id="dify-loading" style="display: none;">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">AI正在思考中...</div>
+            </div>
+            
+            <!-- 问题显示区域 -->
+            <div class="dify-question-section" id="dify-question-section" style="display: none;">
+                <div class="dify-question" id="dify-question"></div>
+            </div>
+            
+            <!-- 选择项区域 -->
+            <div class="dify-choices-section" id="dify-choices-section" style="display: none;">
+                <div class="choices-container" id="choices-container"></div>
+            </div>
+            
+            <!-- 结果显示区域 -->
+            <div class="dify-result-section" id="dify-result-section" style="display: none;">
+                <div class="result-content" id="result-content"></div>
+                <button class="dify-restart-btn" id="dify-restart-btn">
+                    <i class="fas fa-refresh"></i>
+                    重新开始
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 地图控制按钮 -->
+    <div class="map-controls">
+        <button id="show-route" class="map-control-btn">显示路线</button>
+        <button id="reset-map" class="map-control-btn">重置地图</button>
+        <button id="show-steps" class="map-control-btn">详细步骤</button>
+        <button id="show-ai-process" class="map-control-btn">AI过程</button>
+        <button id="export-route" class="map-control-btn">导出路线</button>
+        <button id="toggle-dify" class="map-control-btn">AI问答</button>
+    </div>
+
+    <!-- 智能规划面板 -->
+    <div class="planner-panel" id="planner-panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">🧠 LLM智能路线规划</div>
+            </div>
+            <button class="close-panel-btn" id="close-panel-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="panel-content">
+            <!-- 状态提示 -->
+            <!-- <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 13px;">
+                <i class="fas fa-check-circle"></i>
+                <strong>🤖 AI智能规划升级:</strong> 由LLM完全主导路径规划决策，自主调用地图API并分析地点信息
+                <br>
+                <small style="margin-top: 5px; display: block;">
+                    🧠 智能流程: LLM分析需求 → 主动搜索地点 → 理解地点特征 → 智能决策最优路线
+                </small>
+            </div> -->
+
+            <!-- 规划表单 -->
+                <form id="planning-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="start-location">🏁 起点</label>
+                            <input type="text" id="start-location" name="start-location" placeholder="请输入起点地址或地标" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="city">🏙️ 城市</label>
+                            <select id="city" name="city" required>
+                                <option value="">请选择城市</option>
+                                <option value="北京">北京</option>
+                                <option value="上海">上海</option>
+                                <option value="广州">广州</option>
+                                <option value="深圳">深圳</option>
+                                <option value="杭州">杭州</option>
+                                <option value="南京">南京</option>
+                                <option value="重庆">重庆</option>
+                                <option value="纽约">纽约</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="distance">📏 期望距离</label>
+                            <select id="distance" name="distance" required>
+                                <option value="">请选择距离</option>
+                                <option value="1-3">1-3公里（轻松散步）</option>
+                                <option value="3-5">3-5公里（休闲徒步）</option>
+                                <option value="5-8">5-8公里（健身走路）</option>
+                                <option value="8-12">8-12公里（长距离徒步）</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="preference">🌟 偏好类型</label>
+                            <select id="preference" name="preference" required>
+                                <option value="">请选择偏好</option>
+                                <option value="水景">水景（湖泊、河流、海滨）</option>
+                                <option value="公园">公园（城市公园、绿地）</option>
+                                <option value="历史">历史（古迹、文化景点）</option>
+                                <option value="商业">商业（购物街、商圈）</option>
+                                <option value="自然">自然（山林、郊野）</option>
+                                <option value="科技">科技（科技园、现代建筑）</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="end-type">🎯 终点类型</label>
+                        <select id="end-type" name="end-type" required>
+                            <option value="">请选择终点类型</option>
+                            <option value="地铁站">地铁站</option>
+                            <option value="公交站">公交站</option>
+                            <option value="景点">知名景点</option>
+                            <option value="商场">购物中心</option>
+                            <option value="起点">返回起点（环形路线）</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="plan-btn" id="plan-button">
+                        <i class="fas fa-brain"></i> 启动AI智能规划 (LLM自主决策)
+                    </button>
+            </form>
+                    
+                    <!-- 超酷炫AI规划状态显示 -->
+                    <div class="ai-terminal" id="planning-status">
+                        <!-- 终端头部 -->
+                        <div class="terminal-header">
+                            <div class="terminal-buttons">
+                                <span class="terminal-btn close"></span>
+                                <span class="terminal-btn minimize"></span>
+                                <span class="terminal-btn maximize"></span>
+                            </div>
+                            <div class="terminal-title">
+                                <i class="fas fa-robot"></i> AI Smart Planning Terminal v2.0
+                                <span class="terminal-status" id="terminal-status">INITIALIZING</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 终端内容区 -->
+                        <div class="terminal-content">
+                            <!-- 系统信息 -->
+                            <div class="terminal-line system-info">
+                                <span class="prompt">[SYSTEM]</span>
+                                <span class="loading-text" id="system-info">Booting AI Planning Agent...</span>
+                            </div>
+                            
+                            <!-- 主状态显示 -->
+                            <div class="terminal-line main-status">
+                                <span class="prompt">[AI-CORE]</span>
+                                <span class="typewriter" id="status-text">🤖 AI正在分析您的需求...</span>
+                            </div>
+                            
+                            <!-- 详细状态 -->
+                            <div class="terminal-line detail-status" id="status-detail-line" style="display: none;">
+                                <span class="prompt">[DEBUG]</span>
+                                <span class="detail-text" id="status-detail"></span>
+                            </div>
+                            
+                            <!-- 实时日志显示区域 -->
+                            <div id="console-logs" class="console-logs">
+                                <!-- 动态生成的console日志 -->
+                            </div>
+                            
+                            <!-- AI决策步骤显示 -->
+                            <div id="planning-steps" class="planning-steps" style="display: none;">
+                                <div class="terminal-line section-header">
+                                    <span class="prompt">[AI-STEPS]</span>
+                                    <span class="section-title">🧠 Decision Process Breakdown:</span>
+                                </div>
+                                <div id="steps-list" class="steps-container"></div>
+                            </div>
+                            
+                            <!-- 进度条 -->
+                            <div class="progress-container" id="progress-container" style="display: none;">
+                                <div class="terminal-line">
+                                    <span class="prompt">[PROGRESS]</span>
+                                    <span class="progress-label" id="progress-label">Processing...</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progress-fill"></div>
+                                    <div class="progress-glow"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 底部状态栏 -->
+                        <div class="terminal-footer">
+                            <span class="footer-info">
+                                <i class="fas fa-microchip"></i> Claude-4 | 
+                                <i class="fas fa-map"></i> AMap API | 
+                                <span id="timing-info">00:00</span>
+                            </span>
+                            <span class="footer-status" id="footer-status">READY</span>
+                        </div>
+            </div>
+
+    <!-- 结果面板 -->
+    <div class="result-panel" id="result-panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">🎉 AI智能规划结果</div>
+                <div class="panel-subtitle">专属散步路线详情</div>
+                </div>
+            <button class="close-panel-btn" id="close-result-panel-btn">
+                <i class="fas fa-times"></i>
+            </button>
+            </div>
+
+        <div class="panel-content">
+            <!-- 规划结果 -->
+            <div id="planned-route">
+                <div id="route-summary" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+                    <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                        <div style="font-size: 20px; font-weight: 700; color: #667eea; margin-bottom: 5px;" id="total-distance">--</div>
+                        <div style="font-size: 11px; color: #6c757d; text-transform: uppercase;">总距离</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                        <div style="font-size: 20px; font-weight: 700; color: #667eea; margin-bottom: 5px;" id="total-time">--</div>
+                        <div style="font-size: 11px; color: #6c757d; text-transform: uppercase;">预计时间</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                        <div style="font-size: 20px; font-weight: 700; color: #667eea; margin-bottom: 5px;" id="waypoints-count">--</div>
+                        <div style="font-size: 11px; color: #6c757d; text-transform: uppercase;">途经景点</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                        <div style="font-size: 20px; font-weight: 700; color: #667eea; margin-bottom: 5px;" id="difficulty-level">--</div>
+                        <div style="font-size: 11px; color: #6c757d; text-transform: uppercase;">AI评分</div>
+                    </div>
+                </div>
+                
+                <div id="route-details" style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px; font-size: 12px;">
+                    <!-- 动态生成的详细路线信息 -->
+                    </div>
+                
+                <div id="route-description">
+                    <!-- 动态生成的路线描述，包含AI分析 -->
+                </div>
+
+                <!-- AI规划历史显示 -->
+                <div id="ai-planning-history" style="margin-top: 15px;">
+                    <h4 style="color: #2c3e50; margin-bottom: 10px; font-size: 14px;">🧠 AI规划过程回顾</h4>
+                    <div id="planning-history-content" style="background: #f8f9fa; padding: 15px; border-radius: 10px; font-size: 11px;">
+                        <!-- 动态生成的AI规划历史 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="fixed_mcp_planner.js"></script>
+    <script>
+        // 面板控制脚本
+        document.addEventListener('DOMContentLoaded', function() {
+            const floatingBtn = document.getElementById('floating-planner-btn');
+            const plannerPanel = document.getElementById('planner-panel');
+            const resultPanel = document.getElementById('result-panel');
+            const closePanelBtn = document.getElementById('close-panel-btn');
+            const closeResultPanelBtn = document.getElementById('close-result-panel-btn');
+
+            // 打开规划面板
+            floatingBtn.addEventListener('click', function() {
+                plannerPanel.classList.add('open');
+                resultPanel.classList.remove('open');
+            });
+
+            // 关闭规划面板
+            closePanelBtn.addEventListener('click', function() {
+                plannerPanel.classList.remove('open');
+            });
+
+            // 关闭结果面板
+            closeResultPanelBtn.addEventListener('click', function() {
+                resultPanel.classList.remove('open');
+            });
+
+            // 点击浮动按钮外部关闭面板
+            document.addEventListener('click', function(e) {
+                if (!plannerPanel.contains(e.target) && 
+                    !floatingBtn.contains(e.target) && 
+                    plannerPanel.classList.contains('open')) {
+                    // 不自动关闭，让用户手动关闭
+                }
+            });
+
+            // 初始化地图（占满全屏）
+            if (typeof initMap === 'function') {
+                initMap();
+            }
+        });
+
+        // 重写displayRouteResult函数的安全包装器
+        function setupDisplayRouteResultOverride() {
+            const maxRetries = 10;
+            let retryCount = 0;
+            
+            function tryOverride() {
+                if (typeof window.displayRouteResult === 'function' && !window.originalDisplayRouteResult) {
+                    console.log('✅ 成功找到原始displayRouteResult函数，开始重写');
+                    
+                    // 保存原始函数引用
+                    window.originalDisplayRouteResult = window.displayRouteResult;
+                    
+                    // 重写函数
+                    window.displayRouteResult = function(result) {
+                        console.log('🎯 使用重写的displayRouteResult函数，显示在面板中');
+                        
+                        try {
+                            const resultPanel = document.getElementById('result-panel');
+                            const plannerPanel = document.getElementById('planner-panel');
+                            
+                            // 调用原始函数更新结果数据
+                            if (window.originalDisplayRouteResult) {
+                                window.originalDisplayRouteResult(result);
+                            }
+                            
+                            // 显示结果面板，隐藏规划面板
+                            if (resultPanel && plannerPanel) {
+                                resultPanel.classList.add('open');
+                                plannerPanel.classList.remove('open');
+                                console.log('✅ 面板显示状态已更新');
+                            }
+                        } catch (error) {
+                            console.error('❌ displayRouteResult重写函数执行出错:', error);
+                        }
+                    };
+                } else if (retryCount < maxRetries) {
+                    retryCount++;
+                    console.log(`⏳ 等待displayRouteResult函数加载... (${retryCount}/${maxRetries})`);
+                    setTimeout(tryOverride, 100);
+                } else {
+                    console.warn('⚠️ 无法找到原始displayRouteResult函数，使用默认行为');
+                }
+            }
+            
+            tryOverride();
+        }
+        
+        // 启动函数重写
+        setupDisplayRouteResultOverride();
+
+        // Dify API 功能实现
+        class DifyAPIClient {
+            constructor() {
+                this.apiToken = null;
+                this.baseUrl = 'https://api.dify.ai/v1';
+                this.currentResult = null;
+                this.setupEventListeners();
+                this.initializeFromEnv();
+            }
+
+            initializeFromEnv() {
+                // 尝试从localStorage获取token
+                this.apiToken = localStorage.getItem('dify_api_token');
+                if (!this.apiToken) {
+                    // 如果没有token，可以提示用户输入或使用默认值
+                    console.log('未找到Dify API Token，请在控制台设置：localStorage.setItem("dify_api_token", "your-token")');
+                    // 使用测试Token（请替换为真实Token）
+                    this.apiToken = 'app-66AeBLjLKMIYEsb5ufu0h8Ch';
+                }
+            }
+
+            setupEventListeners() {
+                // 控制按钮事件
+                document.getElementById('toggle-dify').addEventListener('click', () => {
+                    this.toggleDifyCard();
+                });
+
+                document.getElementById('dify-close-btn').addEventListener('click', () => {
+                    this.hideDifyCard();
+                });
+
+                document.getElementById('dify-minimize-btn').addEventListener('click', () => {
+                    this.toggleMinimize();
+                });
+
+                // 提交表单事件
+                document.getElementById('dify-submit-btn').addEventListener('click', () => {
+                    this.handleSubmit();
+                });
+
+                // 重新开始事件
+                document.getElementById('dify-restart-btn').addEventListener('click', () => {
+                    this.restart();
+                });
+
+                // 输入框回车事件
+                document.getElementById('dify-location-input').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.handleSubmit();
+                    }
+                });
+            }
+
+            toggleDifyCard() {
+                const card = document.getElementById('dify-card');
+                if (card.classList.contains('show')) {
+                    this.hideDifyCard();
+                } else {
+                    this.showDifyCard();
+                }
+            }
+
+            showDifyCard() {
+                const card = document.getElementById('dify-card');
+                card.classList.add('show');
+                card.classList.remove('minimized');
+            }
+
+            hideDifyCard() {
+                const card = document.getElementById('dify-card');
+                card.classList.remove('show');
+            }
+
+            toggleMinimize() {
+                const card = document.getElementById('dify-card');
+                card.classList.toggle('minimized');
+            }
+
+            async handleSubmit() {
+                const locationInput = document.getElementById('dify-location-input');
+                const location = locationInput.value.trim();
+
+                if (!location) {
+                    this.showMessage('请输入位置信息', 'error');
+                    return;
+                }
+
+                if (!this.apiToken) {
+                    this.showMessage('请先设置Dify API Token', 'error');
+                    return;
+                }
+
+                try {
+                    this.showLoading();
+                    const result = await this.callDifyAPI(location);
+                    this.handleAPIResponse(result);
+                } catch (error) {
+                    console.error('API调用失败:', error);
+                    this.showMessage('API调用失败: ' + error.message, 'error');
+                    this.hideLoading();
+                }
+            }
+
+            async callDifyAPI(location) {
+                const payload = {
+                    inputs: {
+                        location: location
+                    },
+                    response_mode: "blocking",
+                    user: `web-user-${Date.now()}`
+                };
+
+                console.log('🚀 发送Dify API请求:', payload);
+
+                const response = await fetch(`${this.baseUrl}/workflows/run`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.apiToken}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(`HTTP ${response.status}: ${errorData.message || '请求失败'}`);
+                }
+
+                const result = await response.json();
+                console.log('✅ Dify API响应:', result);
+                return result;
+            }
+
+            handleAPIResponse(result) {
+                this.currentResult = result;
+                this.hideLoading();
+
+                if (result.data && result.data.outputs && result.data.outputs.task_output) {
+                    try {
+                        const taskOutput = JSON.parse(result.data.outputs.task_output);
+                        this.displayQuestionAndChoices(taskOutput);
+                    } catch (e) {
+                        console.error('解析task_output失败:', e);
+                        this.showMessage('响应数据格式错误', 'error');
+                    }
+                } else {
+                    this.showMessage('API响应格式不正确', 'error');
+                }
+            }
+
+            displayQuestionAndChoices(taskOutput) {
+                const { question, choices } = taskOutput;
+
+                // 隐藏输入区域
+                document.getElementById('dify-input-section').style.display = 'none';
+
+                // 显示问题
+                if (question) {
+                    const questionSection = document.getElementById('dify-question-section');
+                    const questionElement = document.getElementById('dify-question');
+                    questionElement.textContent = question;
+                    questionSection.style.display = 'block';
+                }
+
+                // 显示选择项
+                if (choices && choices.length > 0) {
+                    this.renderChoices(choices);
+                    document.getElementById('dify-choices-section').style.display = 'block';
+                }
+            }
+
+            renderChoices(choices) {
+                const container = document.getElementById('choices-container');
+                container.innerHTML = '';
+
+                choices.forEach((choice, index) => {
+                    const choiceElement = document.createElement('div');
+                    choiceElement.className = 'choice-item';
+                    choiceElement.dataset.index = index;
+                    
+                    choiceElement.innerHTML = `
+                        <div class="choice-option">${choice.option}</div>
+                        <div class="choice-action">${choice.next_action || '继续下一步'}</div>
+                    `;
+
+                    choiceElement.addEventListener('click', () => {
+                        this.selectChoice(choiceElement, choice);
+                    });
+
+                    container.appendChild(choiceElement);
+                });
+            }
+
+            selectChoice(choiceElement, choice) {
+                // 清除其他选择项的选中状态
+                document.querySelectorAll('.choice-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+
+                // 标记当前选择项为选中状态
+                choiceElement.classList.add('selected');
+
+                // 显示结果
+                setTimeout(() => {
+                    this.showChoiceResult(choice);
+                }, 500);
+            }
+
+            showChoiceResult(choice) {
+                const resultSection = document.getElementById('dify-result-section');
+                const resultContent = document.getElementById('result-content');
+                
+                resultContent.innerHTML = `
+                    <div style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                        <div style="color: #28a745; font-weight: 600; margin-bottom: 8px;">
+                            ✅ 您选择了：${choice.option}
+                        </div>
+                        <div style="color: #667eea; font-weight: 500;">
+                            ➡️ 下一步行动：${choice.next_action}
+                        </div>
+                    </div>
+                `;
+
+                // 隐藏问题和选择区域
+                document.getElementById('dify-question-section').style.display = 'none';
+                document.getElementById('dify-choices-section').style.display = 'none';
+                
+                // 显示结果区域
+                resultSection.style.display = 'block';
+            }
+
+            restart() {
+                // 重置所有状态
+                this.currentResult = null;
+                document.getElementById('dify-location-input').value = '';
+                
+                // 显示输入区域
+                document.getElementById('dify-input-section').style.display = 'block';
+                
+                // 隐藏其他区域
+                document.getElementById('dify-question-section').style.display = 'none';
+                document.getElementById('dify-choices-section').style.display = 'none';
+                document.getElementById('dify-result-section').style.display = 'none';
+                document.getElementById('dify-loading').style.display = 'none';
+            }
+
+            showLoading() {
+                document.getElementById('dify-input-section').style.display = 'none';
+                document.getElementById('dify-loading').style.display = 'block';
+                document.getElementById('dify-submit-btn').disabled = true;
+            }
+
+            hideLoading() {
+                document.getElementById('dify-loading').style.display = 'none';
+                document.getElementById('dify-submit-btn').disabled = false;
+            }
+
+            showMessage(message, type = 'info') {
+                // 创建消息提示
+                const messageElement = document.createElement('div');
+                messageElement.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    color: white;
+                    font-weight: 500;
+                    z-index: 9999;
+                    animation: slideInRight 0.3s ease-out;
+                    max-width: 300px;
+                `;
+
+                const colors = {
+                    error: '#dc3545',
+                    success: '#28a745',
+                    info: '#17a2b8',
+                    warning: '#ffc107'
+                };
+
+                messageElement.style.background = colors[type] || colors.info;
+                messageElement.textContent = message;
+
+                document.body.appendChild(messageElement);
+
+                // 3秒后自动删除
+                setTimeout(() => {
+                    if (messageElement.parentNode) {
+                        messageElement.parentNode.removeChild(messageElement);
+                    }
+                }, 3000);
+            }
+        }
+
+        // 初始化Dify API客户端
+        const difyClient = new DifyAPIClient();
+    </script>
+</body>
+</html> 
