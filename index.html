@@ -347,6 +347,36 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
         }
 
+        /* 独立的定位按钮 */
+        .location-btn {
+            position: fixed;
+            right: 30px;
+            bottom: 120px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            border-radius: 50%;
+            box-shadow: 0 6px 25px rgba(23, 162, 184, 0.4);
+            border: none;
+            cursor: pointer;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            color: white;
+            font-size: 1.4rem;
+        }
+
+        .location-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px rgba(23, 162, 184, 0.6);
+        }
+
+        .location-btn:active {
+            transform: scale(0.95);
+        }
+
         /* 浮动按钮呼吸动画 */
         @keyframes breathe {
             0%, 100% {
@@ -982,6 +1012,14 @@
                 font-size: 1.5rem;
             }
 
+            .location-btn {
+                width: 50px;
+                height: 50px;
+                right: 20px;
+                bottom: 90px;
+                font-size: 1.2rem;
+            }
+
             .app-title {
                 font-size: 1.2rem;
             }
@@ -1178,9 +1216,13 @@
         </div>
     </div>
 
+    <!-- 独立定位按钮 -->
+    <button id="relocate-user" class="location-btn" title="重新获取我的位置">
+        <i class="fas fa-location-arrow"></i>
+    </button>
+
     <!-- 地图控制按钮 -->
     <div class="map-controls">
-        <button id="relocate-user" class="map-control-btn" title="重新获取我的位置">📍 定位</button>
         <button id="show-route" class="map-control-btn">显示路线</button>
         <button id="reset-map" class="map-control-btn">重置地图</button>
         <button id="show-steps" class="map-control-btn">详细步骤</button>
