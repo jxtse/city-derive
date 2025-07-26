@@ -372,15 +372,59 @@ class NavigationApp {
         const optionsContainer = document.getElementById('options-container');
 
         questionElement.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 8px; color: #667eea;">
-                <div class="loading-spinner" style="width: 16px; height: 16px; border: 2px solid #f3f4f6; border-top: 2px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                正在获取下一步建议...
+            <div style="display: flex; align-items: center; gap: 12px; color: #2E2E2E;">
+                <div style="
+                    width: 20px; 
+                    height: 20px; 
+                    border: 3px solid #E8F5E8; 
+                    border-top: 3px solid #8BC34A; 
+                    border-radius: 50%; 
+                    animation: spin 1s linear infinite;
+                "></div>
+                <span style="font-size: 18px; font-weight: 600;">正在获取下一步建议...</span>
             </div>
         `;
 
         optionsContainer.innerHTML = `
-            <div style="text-align: center; padding: 20px; color: #6b7280;">
-                <div style="font-size: 14px;">🤖 AI正在思考中...</div>
+            <div style="
+                text-align: center; 
+                padding: 24px; 
+                background: linear-gradient(135deg, #F8F9FA, #E8F5E8);
+                border-radius: 16px;
+                border: 1px solid rgba(139, 195, 74, 0.2);
+            ">
+                <div style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    color: #8BC34A;
+                    font-size: 15px;
+                    font-weight: 500;
+                ">
+                    <div style="
+                        width: 6px;
+                        height: 6px;
+                        background: #8BC34A;
+                        border-radius: 50%;
+                        animation: pulse 1.5s ease-in-out infinite;
+                    "></div>
+                    <div style="
+                        width: 6px;
+                        height: 6px;
+                        background: #8BC34A;
+                        border-radius: 50%;
+                        animation: pulse 1.5s ease-in-out infinite 0.2s;
+                    "></div>
+                    <div style="
+                        width: 6px;
+                        height: 6px;
+                        background: #8BC34A;
+                        border-radius: 50%;
+                        animation: pulse 1.5s ease-in-out infinite 0.4s;
+                    "></div>
+                    <span style="margin-left: 8px;">🤖 AI正在智能分析...</span>
+                </div>
             </div>
         `;
     }
