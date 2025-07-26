@@ -218,6 +218,9 @@ class NavigationApp {
 
         try {
             console.log('🤖 调用Dify AI分析位置...');
+            
+            // 显示加载状态
+            this.showLoadingInBubble();
 
             const locationDescription = this.currentPOIDetails ? 
                 `${this.currentPOIDetails.name} - ${this.currentPOIDetails.address}` : 
@@ -236,7 +239,7 @@ class NavigationApp {
                         poi_address: this.currentPOIDetails ? this.currentPOIDetails.address : '',
                         poi_type: this.currentPOIDetails ? (this.currentPOIDetails.type || '') : '',
                         user_coordinates: JSON.stringify(this.userLocation),
-                        request_type: 'initial_analysis'
+                        request_type: 'follow_up_analysis'
                     },
                     response_mode: "blocking",
                     user: `navigation-user-${Date.now()}`
@@ -259,7 +262,7 @@ class NavigationApp {
                     // 验证数据格式
                     if (taskOutput.question && taskOutput.choices && Array.isArray(taskOutput.choices)) {
                         this.updateAIBubble(taskOutput);
-                        console.log('✅ 真实Dify API数据已显示');
+                        console.log('✅ AI建议已重新生成并显示');
                     } else {
                         throw new Error('API返回的数据格式不符合预期');
                     }
@@ -273,8 +276,8 @@ class NavigationApp {
         } catch (error) {
             console.error('❌ Dify AI分析失败:', error);
             this.showMessage('AI分析服务暂时不可用，请稍后重试', 'error');
-            // 隐藏AI气泡，不显示硬编码内容
-            this.hideAIBubble();
+            // 显示重试按钮而不是隐藏AI气泡
+            this.resetAIBubble();
         }
     }
 
@@ -414,7 +417,8 @@ class NavigationApp {
     
     retryDifyAnalysis() {
         console.log('🔄 重新尝试Dify AI分析');
-        this.showLoadingInBubble();
+        // 显示AI气泡并开始分析
+        this.showAIBubble();
         this.analyzeLocationWithDify();
     }
 
@@ -431,8 +435,14 @@ class NavigationApp {
             this.cachedNextOptions = null; // 清空缓存
         } else {
             console.log('⚠️ 没有缓存的选项，重新获取AI建议');
-            // 直接重新获取AI建议，不显示中间状态
-            this.retryDifyAnalysis();
+            // 检查是否有位置信息
+            if (this.userLocation) {
+                // 重新获取当前位置的POI和AI建议
+                this.analyzeLocationWithDify();
+            } else {
+                // 如果没有位置信息，重新获取位置
+                this.getUserLocation();
+            }
         }
     }
 
