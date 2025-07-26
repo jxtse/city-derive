@@ -1,5 +1,4 @@
-modules = ["nodejs-20", "web", "python-base-3.13"]
-run = "python3 -m http.server 5000"
+modules = ["nodejs-20", "web"]
 
 [nix]
 channel = "stable-25_05"
@@ -15,10 +14,3 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python3 -m http.server 5000"
-
-[deployment]
-run = ["sh", "-c", "python3 -m http.server 5000"]
-
-[[ports]]
-localPort = 5000
-externalPort = 80
