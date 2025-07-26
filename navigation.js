@@ -373,14 +373,6 @@ class NavigationApp {
 
         questionElement.innerHTML = `
             <div style="display: flex; align-items: center; gap: 12px; color: #2E2E2E;">
-                <div style="
-                    width: 20px; 
-                    height: 20px; 
-                    border: 3px solid #E8F5E8; 
-                    border-top: 3px solid #8BC34A; 
-                    border-radius: 50%; 
-                    animation: spin 1s linear infinite;
-                "></div>
                 <span style="font-size: 18px; font-weight: 600;">正在获取下一步建议...</span>
             </div>
         `;
