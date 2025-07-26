@@ -417,7 +417,7 @@ class NavigationApp {
                         border-radius: 50%;
                         animation: pulse 1.5s ease-in-out infinite 0.4s;
                     "></div>
-                    <span style="margin-left: 8px;">🤖 AI正在智能分析...</span>
+                    <span style="margin-left: 8px;">AI正在智能分析...</span>
                 </div>
             </div>
         `;
