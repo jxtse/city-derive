@@ -316,6 +316,17 @@
             }
         }
 
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 30px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
         /* 响应式设计 */
         @media (max-width: 480px) {
             .ai-chat-bubble {

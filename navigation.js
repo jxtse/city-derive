@@ -500,40 +500,14 @@ class NavigationApp {
     }
 
     updateAIBubbleWithSelection(selectedOption, nextAction) {
+        // 隐藏AI对话气泡
+        this.hideAIBubble();
+        
         // 创建或更新常驻指令信息区域
         this.createPersistentInstructionArea(selectedOption, nextAction);
-
-        const questionElement = document.getElementById('ai-question');
-        const optionsContainer = document.getElementById('options-container');
-
-        // 更新问题显示为选择结果（简化版）
-        questionElement.innerHTML = `
-            <div style="color: #10b981; font-weight: 600; font-size: 15px;">
-                ✅ 您选择了：${selectedOption}
-            </div>
-        `;
-
-        // 显示已完成按钮，而不是显示加载状态
-        optionsContainer.innerHTML = `
-            <div style="text-align: center; padding: 20px;">
-                <div style="color: #374151; font-size: 14px; margin-bottom: 16px;">
-                    🎯 请按照上方指令完成此步骤
-                </div>
-                <button onclick="navigationApp.markStepAsCompleted()" style="
-                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                    color: white;
-                    border: none;
-                    padding: 12px 24px;
-                    border-radius: 12px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-                ">
-                    ✅ 已完成
-                </button>
-            </div>
-        `;
+        
+        // 在页面底部显示已完成按钮
+        this.createBottomCompleteButton();
     }
 
     createPersistentInstructionArea(selectedOption, nextAction) {
@@ -587,12 +561,52 @@ class NavigationApp {
 
         // 显示指令区域
         instructionArea.style.display = 'block';
+    }
 
-        // 调整AI气泡位置，避免重叠
-        const aiChatBubble = document.getElementById('ai-chat-bubble');
-        if (aiChatBubble) {
-            aiChatBubble.style.top = '120px'; // 给常驻指令区域留出空间
+    createBottomCompleteButton() {
+        // 检查是否已存在底部按钮
+        let bottomButton = document.getElementById('bottom-complete-button');
+
+        if (!bottomButton) {
+            // 创建底部完成按钮
+            bottomButton = document.createElement('div');
+            bottomButton.id = 'bottom-complete-button';
+            bottomButton.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1001;
+                display: none;
+                animation: slideUp 0.4s ease-out;
+            `;
+
+            document.body.appendChild(bottomButton);
         }
+
+        // 更新按钮内容
+        bottomButton.innerHTML = `
+            <button onclick="navigationApp.markStepAsCompleted()" style="
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                border: none;
+                padding: 16px 32px;
+                border-radius: 16px;
+                font-weight: 600;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            ">
+                ✅ 已完成
+            </button>
+        `;
+
+        // 显示按钮
+        bottomButton.style.display = 'block';
     }
 
     hidePersistentInstruction() {
@@ -601,10 +615,10 @@ class NavigationApp {
             instructionArea.style.display = 'none';
         }
 
-        // 恢复AI气泡位置
-        const aiChatBubble = document.getElementById('ai-chat-bubble');
-        if (aiChatBubble) {
-            aiChatBubble.style.top = '60px';
+        // 隐藏底部完成按钮
+        const bottomButton = document.getElementById('bottom-complete-button');
+        if (bottomButton) {
+            bottomButton.style.display = 'none';
         }
     }
 
