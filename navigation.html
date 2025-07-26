@@ -1,0 +1,785 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧭 智能步行导航</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            color: #333;
+        }
+
+        .navigation-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .nav-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+
+        .nav-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .nav-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .route-summary {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #28a745;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .route-info {
+            background: rgba(40, 167, 69, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+        }
+
+        .route-description {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #495057;
+        }
+
+        .navigation-steps {
+            padding: 30px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .steps-container {
+            space-y: 15px;
+        }
+
+        .nav-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            border-left: 5px solid transparent;
+        }
+
+        .nav-step:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-step.start {
+            border-left-color: #28a745;
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+        }
+
+        .nav-step.waypoint {
+            border-left-color: #17a2b8;
+            background: linear-gradient(135deg, rgba(23, 162, 184, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+        }
+
+        .nav-step.end {
+            border-left-color: #dc3545;
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+        }
+
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .step-icon.start {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .step-icon.waypoint {
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+        }
+
+        .step-icon.end {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-instruction {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .step-description {
+            font-size: 0.95rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .step-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 12px;
+        }
+
+        .step-detail-item {
+            background: #f8f9fa;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .coordinates-info {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #495057;
+        }
+
+        .action-buttons {
+            padding: 30px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .load-route {
+            background: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-label {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .file-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .tips-section {
+            background: rgba(255, 193, 7, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 30px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .tips-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tips-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tips-list li {
+            padding: 5px 0;
+            color: #856404;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tips-list li::before {
+            content: "💡";
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .navigation-container {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+
+            .nav-header {
+                padding: 20px;
+            }
+
+            .nav-title {
+                font-size: 1.5rem;
+            }
+
+            .route-summary, .navigation-steps {
+                padding: 20px;
+            }
+
+            .summary-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .nav-step {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .step-icon {
+                align-self: flex-start;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                padding: 20px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(220, 53, 69, 0.1);
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px;
+            border-left: 4px solid #dc3545;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation-container">
+        <div class="nav-header">
+            <h1 class="nav-title">
+                <i class="fas fa-route"></i>
+                智能步行导航
+            </h1>
+            <p class="nav-subtitle">AI生成的详细路线导航指引</p>
+        </div>
+
+        <div id="content">
+            <div class="load-route">
+                <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                    <i class="fas fa-upload"></i> 加载路线数据
+                </h3>
+                <input type="file" id="route-file" class="file-input" accept=".json">
+                <label for="route-file" class="file-label">
+                    <i class="fas fa-file-upload"></i> 选择路线文件 (.json)
+                </label>
+                <p style="color: #6c757d; font-size: 0.9rem;">
+                    请选择从散步规划器导出的详细路线JSON文件
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class NavigationInterface {
+            constructor() {
+                this.routeData = null;
+                this.setupEventListeners();
+                this.checkURLParams();
+            }
+
+            setupEventListeners() {
+                document.getElementById('route-file').addEventListener('change', (e) => {
+                    this.handleFileLoad(e);
+                });
+            }
+
+            checkURLParams() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const routeParam = urlParams.get('route');
+                
+                if (routeParam) {
+                    try {
+                        const routeData = JSON.parse(decodeURIComponent(routeParam));
+                        this.loadRouteData(routeData);
+                    } catch (error) {
+                        console.error('URL参数路线数据解析失败:', error);
+                    }
+                }
+            }
+
+            handleFileLoad(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                this.showLoading();
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const routeData = JSON.parse(e.target.result);
+                        this.loadRouteData(routeData);
+                    } catch (error) {
+                        this.showError('文件格式错误，请选择有效的路线JSON文件');
+                        console.error('文件解析失败:', error);
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            loadRouteData(data) {
+                console.log('加载路线数据:', data);
+                this.routeData = data;
+                this.renderNavigation();
+            }
+
+            showLoading() {
+                document.getElementById('content').innerHTML = `
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>正在加载路线数据...</p>
+                    </div>
+                `;
+            }
+
+            showError(message) {
+                document.getElementById('content').innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                        <h3>加载失败</h3>
+                        <p>${message}</p>
+                        <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 15px;">
+                            <i class="fas fa-refresh"></i> 重新加载
+                        </button>
+                    </div>
+                `;
+            }
+
+            renderNavigation() {
+                if (!this.routeData) {
+                    this.showError('没有可用的路线数据');
+                    return;
+                }
+
+                const content = document.getElementById('content');
+                content.innerHTML = this.generateNavigationHTML();
+                
+                // 添加事件监听器
+                this.setupNavigationEvents();
+            }
+
+            generateNavigationHTML() {
+                const data = this.routeData;
+                const summary = data.route_summary || {};
+                const markers = data.markers_detail || {};
+                const navigation = data.navigation_details?.step_by_step_navigation || [];
+                const tips = data.navigation_details?.navigation_tips || [];
+
+                return `
+                    <div class="route-summary">
+                        <div class="summary-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">${summary.total_distance_km || '0'}km</div>
+                                <div class="stat-label">总距离</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${summary.estimated_duration_minutes || '0'}分钟</div>
+                                <div class="stat-label">预计时间</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${summary.waypoints_count || '0'}个</div>
+                                <div class="stat-label">途经点</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${summary.difficulty_rating || 'N/A'}</div>
+                                <div class="stat-label">AI评分</div>
+                            </div>
+                        </div>
+                        
+                        <div class="route-info">
+                            <div class="route-description">
+                                <strong>路线描述：</strong>${data.ai_analysis?.route_description || '智能生成的散步路线'}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="navigation-steps">
+                        <h2 class="section-title">
+                            <i class="fas fa-list-ol"></i>
+                            详细导航步骤
+                        </h2>
+                        <div class="steps-container">
+                            ${this.generateNavigationSteps(navigation)}
+                        </div>
+                    </div>
+
+                    ${tips.length > 0 ? this.generateTipsSection(tips) : ''}
+
+                    <div class="action-buttons">
+                        <button class="btn btn-success" onclick="navigator.startNavigation()">
+                            <i class="fas fa-play"></i> 开始导航
+                        </button>
+                        <button class="btn btn-info" onclick="navigator.exportGPX()">
+                            <i class="fas fa-download"></i> 导出GPX
+                        </button>
+                        <button class="btn btn-primary" onclick="navigator.shareRoute()">
+                            <i class="fas fa-share"></i> 分享路线
+                        </button>
+                        <a href="index.html" class="btn" style="background: #6c757d; color: white;">
+                            <i class="fas fa-arrow-left"></i> 返回规划器
+                        </a>
+                    </div>
+                `;
+            }
+
+            generateNavigationSteps(navigation) {
+                if (!navigation || navigation.length === 0) {
+                    return '<p style="text-align: center; color: #6c757d;">暂无导航步骤信息</p>';
+                }
+
+                return navigation.map((step, index) => {
+                    const stepType = step.instruction_type || 'waypoint';
+                    const iconContent = stepType === 'start' ? '🏁' : 
+                                       stepType === 'end' ? '🎯' : 
+                                       step.step || (index + 1);
+
+                    return `
+                        <div class="nav-step ${stepType}">
+                            <div class="step-icon ${stepType}">${iconContent}</div>
+                            <div class="step-content">
+                                <div class="step-instruction">${step.instruction}</div>
+                                ${step.description ? `<div class="step-description">${step.description}</div>` : ''}
+                                ${step.suggested_action ? `<div class="step-description"><strong>建议：</strong>${step.suggested_action}</div>` : ''}
+                                
+                                <div class="step-details">
+                                    ${step.estimated_time ? `
+                                        <div class="step-detail-item">
+                                            <i class="fas fa-clock"></i>
+                                            ${step.estimated_time}
+                                        </div>
+                                    ` : ''}
+                                    ${step.coordinates ? `
+                                        <div class="step-detail-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            坐标定位
+                                        </div>
+                                    ` : ''}
+                                </div>
+
+                                ${step.coordinates ? `
+                                    <div class="coordinates-info">
+                                        <i class="fas fa-crosshairs"></i> 
+                                        精确坐标: ${step.coordinates[0].toFixed(6)}, ${step.coordinates[1].toFixed(6)}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            generateTipsSection(tips) {
+                return `
+                    <div class="tips-section">
+                        <div class="tips-title">
+                            <i class="fas fa-lightbulb"></i>
+                            实用导航提示
+                        </div>
+                        <ul class="tips-list">
+                            ${tips.map(tip => `<li>${tip}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            setupNavigationEvents() {
+                // 为导航按钮添加功能
+                window.navigator = {
+                    startNavigation: () => {
+                        if ('geolocation' in navigator) {
+                            navigator.geolocation.getCurrentPosition(
+                                (position) => {
+                                    this.startRealTimeNavigation(position);
+                                },
+                                (error) => {
+                                    alert('无法获取当前位置，请确保已开启定位服务');
+                                }
+                            );
+                        } else {
+                            alert('您的浏览器不支持定位功能');
+                        }
+                    },
+
+                    exportGPX: () => {
+                        this.exportToGPX();
+                    },
+
+                    shareRoute: () => {
+                        this.shareRoute();
+                    }
+                };
+            }
+
+            startRealTimeNavigation(position) {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+                
+                alert(`🧭 实时导航已启动！\n当前位置: ${userLat.toFixed(6)}, ${userLng.toFixed(6)}\n请跟随页面上的导航指示进行。`);
+                
+                // 这里可以添加实时导航逻辑
+                // 比如高亮当前应该执行的步骤、计算到下一个点的距离等
+                this.highlightCurrentStep(userLat, userLng);
+            }
+
+            highlightCurrentStep(userLat, userLng) {
+                // 简单实现：高亮第一个步骤
+                const firstStep = document.querySelector('.nav-step');
+                if (firstStep) {
+                    firstStep.style.background = 'linear-gradient(135deg, rgba(40, 167, 69, 0.2) 0%, rgba(255, 255, 255, 1) 100%)';
+                    firstStep.style.border = '2px solid #28a745';
+                    
+                    // 滚动到当前步骤
+                    firstStep.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            exportToGPX() {
+                if (!this.routeData) return;
+
+                const gpxContent = this.generateGPXContent();
+                const blob = new Blob([gpxContent], { type: 'application/gpx+xml' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `walking_navigation_${Date.now()}.gpx`;
+                a.click();
+                
+                URL.revokeObjectURL(url);
+                
+                alert('✅ GPX文件已导出！可以导入到GPS设备或其他导航应用中使用。');
+            }
+
+            generateGPXContent() {
+                const data = this.routeData;
+                const routeName = data.route_metadata?.route_name || '步行导航路线';
+                
+                let gpx = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="智能散步导航器">
+    <metadata>
+        <name>${routeName}</name>
+        <desc>AI生成的智能步行导航路线</desc>
+        <time>${new Date().toISOString()}</time>
+    </metadata>
+    
+    <trk>
+        <name>${routeName}</name>
+        <trkseg>
+`;
+
+                // 添加导航点
+                if (data.navigation_details?.step_by_step_navigation) {
+                    data.navigation_details.step_by_step_navigation.forEach(step => {
+                        if (step.coordinates) {
+                            gpx += `            <trkpt lat="${step.coordinates[1]}" lon="${step.coordinates[0]}">
+                <name>${step.instruction}</name>
+                <desc>${step.description || ''}</desc>
+            </trkpt>
+`;
+                        }
+                    });
+                }
+
+                gpx += `        </trkseg>
+    </trk>
+</gpx>`;
+
+                return gpx;
+            }
+
+            shareRoute() {
+                const routeUrl = `${window.location.origin}${window.location.pathname}?route=${encodeURIComponent(JSON.stringify(this.routeData))}`;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: '我的散步路线导航',
+                        text: '查看这条AI生成的智能散步路线！',
+                        url: routeUrl
+                    });
+                } else {
+                    // 复制到剪贴板
+                    navigator.clipboard.writeText(routeUrl).then(() => {
+                        alert('📋 导航链接已复制到剪贴板！您可以分享给其他人。');
+                    }).catch(() => {
+                        // 备用方案
+                        const textArea = document.createElement('textarea');
+                        textArea.value = routeUrl;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        alert('📋 导航链接已复制到剪贴板！您可以分享给其他人。');
+                    });
+                }
+            }
+        }
+
+        // 初始化导航界面
+        document.addEventListener('DOMContentLoaded', () => {
+            new NavigationInterface();
+        });
+    </script>
+</body>
+</html>
