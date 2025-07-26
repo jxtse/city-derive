@@ -66,61 +66,89 @@
         /* 探索模式浮动按钮 */
         .floating-explore-btn {
             position: fixed;
-            left: calc(50% - 80px);
-            bottom: 40px;
+            left: calc(50% - 110px);
+            bottom: 50px;
             width: 100px;
             height: 100px;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
             border-radius: 50%;
-            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.5);
-            border: none;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.8);
             cursor: pointer;
             z-index: 1001;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
-            animation: pulse 2s infinite ease-in-out;
+            animation: gentle-float 3s infinite ease-in-out;
         }
 
         .floating-explore-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 14px 40px rgba(40, 167, 69, 0.7);
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2), 0 6px 15px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 1);
         }
 
         .floating-explore-btn i {
-            color: white;
-            font-size: 2rem;
+            color: #333;
+            font-size: 1.8rem;
+            margin-bottom: 4px;
+        }
+
+        .floating-explore-btn::after {
+            content: "探索模式";
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
+            position: absolute;
+            bottom: -6px;
+            white-space: nowrap;
         }
 
         /* 智能规划浮动按钮 */
         .floating-planner-btn {
             position: fixed;
-            left: calc(50% + 20px);
-            bottom: 40px;
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            left: calc(50% + 10px);
+            bottom: 50px;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
             border-radius: 50%;
-            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.5);
-            border: none;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.8);
             cursor: pointer;
             z-index: 1001;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
-            animation: breathe 3s infinite ease-in-out;
+            animation: gentle-float 3s infinite ease-in-out 0.5s;
         }
 
         .floating-planner-btn:hover {
-            transform: translateX(-50%) scale(1.1);
-            box-shadow: 0 16px 50px rgba(102, 126, 234, 0.7);
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2), 0 6px 15px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 1);
         }
 
         .floating-planner-btn i {
-            color: white;
-            font-size: 2.5rem;
+            color: #333;
+            font-size: 1.8rem;
+            margin-bottom: 4px;
+        }
+
+        .floating-planner-btn::after {
+            content: "导航模式";
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
+            position: absolute;
+            bottom: -6px;
+            white-space: nowrap;
         }
 
         /* 规划面板 */
@@ -377,27 +405,13 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
         }
 
-        /* 浮动按钮呼吸动画 */
-        @keyframes breathe {
+        /* 浮动按钮轻柔浮动动画 */
+        @keyframes gentle-float {
             0%, 100% {
-                transform: scale(1);
-                box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+                transform: translateY(0px);
             }
             50% {
-                transform: scale(1.05);
-                box-shadow: 0 12px 40px rgba(102, 126, 234, 0.6);
-            }
-        }
-
-        /* 探索模式按钮脉冲动画 */
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-                box-shadow: 0 10px 30px rgba(40, 167, 69, 0.4);
-            }
-            50% {
-                transform: scale(1.03);
-                box-shadow: 0 12px 35px rgba(40, 167, 69, 0.6);
+                transform: translateY(-5px);
             }
         }
 
@@ -1016,31 +1030,43 @@
             .floating-explore-btn {
                 width: 80px;
                 height: 80px;
-                left: calc(50% - 60px);
-                bottom: 20px;
+                left: calc(50% - 90px);
+                bottom: 30px;
             }
 
             .floating-explore-btn:hover {
-                transform: scale(1.1);
+                transform: scale(1.05);
             }
 
             .floating-explore-btn i {
-                font-size: 1.5rem;
+                font-size: 1.4rem;
+                margin-bottom: 2px;
+            }
+
+            .floating-explore-btn::after {
+                font-size: 9px;
+                bottom: -4px;
             }
 
             .floating-planner-btn {
-                width: 90px;
-                height: 90px;
+                width: 80px;
+                height: 80px;
                 left: calc(50% + 10px);
-                bottom: 20px;
+                bottom: 30px;
             }
 
             .floating-planner-btn:hover {
-                transform: scale(1.1);
+                transform: scale(1.05);
             }
 
             .floating-planner-btn i {
-                font-size: 2rem;
+                font-size: 1.4rem;
+                margin-bottom: 2px;
+            }
+
+            .floating-planner-btn::after {
+                font-size: 9px;
+                bottom: -4px;
             }
 
             .app-title {
@@ -1178,13 +1204,13 @@
     </div>
 
     <!-- 探索模式浮动按钮 -->
-    <button class="floating-explore-btn" id="floating-explore-btn" title="开启探索模式">
-        <i class="fas fa-compass"></i>
+    <button class="floating-explore-btn" id="floating-explore-btn" title="随意走走，探索周边">
+        <i class="fas fa-walking"></i>
     </button>
 
     <!-- 智能规划浮动按钮 -->
-    <button class="floating-planner-btn" id="floating-planner-btn" title="开启AI智能规划">
-        <i class="fas fa-brain"></i>
+    <button class="floating-planner-btn" id="floating-planner-btn" title="有明确目的地，智能导航">
+        <i class="fas fa-route"></i>
     </button>
 
     <!-- Dify智能问答卡片 -->
