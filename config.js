@@ -3,13 +3,13 @@
 // 请在使用前设置正确的API keys
 window.API_CONFIG = {
     // 高德地图API密钥
-    AMAP_API_KEY: localStorage.getItem('AMAP_API_KEY') || 'c9e4a3040fef05c4084a21c8a357d37f',
+    AMAP_API_KEY: localStorage.getItem('AMAP_API_KEY') || 'your_amap_api_key',
     
     // Dify API Token
-    DIFY_API_TOKEN: localStorage.getItem('DIFY_API_TOKEN') || 'app-66AeBLjLKMIYEsb5ufu0h8Ch',
+    DIFY_API_TOKEN: localStorage.getItem('DIFY_API_TOKEN') || 'your_dify_api_token',
     
     // OpenRouter API密钥
-    OPENROUTER_API_KEY: localStorage.getItem('OPENROUTER_API_KEY') || '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'
+    OPENROUTER_API_KEY: localStorage.getItem('OPENROUTER_API_KEY') || 'your_openrouter_api_key'
 };
 
 // 设置API keys的辅助函数
