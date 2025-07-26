@@ -110,6 +110,10 @@ class NavigationApp {
             // 更新位置显示
             this.updateLocationDisplay();
 
+            // 立即显示AI气泡并开始分析
+            this.showAIBubble();
+            await this.analyzeLocationWithDify();
+
         } catch (error) {
             console.error('❌ 获取位置失败:', error);
             this.updateLocationDisplay('位置获取失败');
@@ -140,6 +144,10 @@ class NavigationApp {
                 console.log('✅ IP定位成功:', this.userLocation);
                 this.updateLocationDisplay();
                 await this.getCurrentLocationPOI();
+                
+                // 显示AI气泡并开始分析
+                this.showAIBubble();
+                await this.analyzeLocationWithDify();
             }
         } catch (error) {
             console.error('❌ IP定位也失败了:', error);
@@ -199,12 +207,19 @@ class NavigationApp {
     }
 
     async analyzeLocationWithDify() {
-        if (!this.currentPOIDetails) return;
+        // 如果没有POI详情，使用基本位置信息
+        if (!this.currentPOIDetails && !this.userLocation) {
+            console.warn('⚠️ 没有位置信息，无法进行AI分析');
+            this.hideAIBubble();
+            return;
+        }
 
         try {
             console.log('🤖 调用Dify AI分析位置...');
 
-            const locationDescription = `${this.currentPOIDetails.name} - ${this.currentPOIDetails.address}`;
+            const locationDescription = this.currentPOIDetails ? 
+                `${this.currentPOIDetails.name} - ${this.currentPOIDetails.address}` : 
+                `经度${this.userLocation.longitude.toFixed(6)}, 纬度${this.userLocation.latitude.toFixed(6)}`;
 
             const response = await fetch(`${this.difyBaseUrl}/workflows/run`, {
                 method: 'POST',
@@ -215,9 +230,9 @@ class NavigationApp {
                 body: JSON.stringify({
                     inputs: {
                         location: locationDescription,
-                        poi_name: this.currentPOIDetails.name,
-                        poi_address: this.currentPOIDetails.address,
-                        poi_type: this.currentPOIDetails.type || '',
+                        poi_name: this.currentPOIDetails ? this.currentPOIDetails.name : '',
+                        poi_address: this.currentPOIDetails ? this.currentPOIDetails.address : '',
+                        poi_type: this.currentPOIDetails ? (this.currentPOIDetails.type || '') : '',
                         user_coordinates: JSON.stringify(this.userLocation),
                         request_type: 'initial_analysis'
                     },
@@ -419,14 +434,17 @@ class NavigationApp {
     }
 
     setupAIChat() {
-        // 5秒后自动显示AI问答气泡
-        setTimeout(() => {
-            this.showAIBubble();
-        }, 5000);
+        // AI气泡将在获取到位置信息并分析后自动显示
+        // 不再使用硬编码的延时显示
+        console.log('🤖 AI问答系统已准备就绪，等待位置信息...');
     }
 
     showAIBubble() {
-        document.getElementById('ai-chat-bubble').classList.add('show');
+        const bubble = document.getElementById('ai-chat-bubble');
+        bubble.classList.add('show');
+        
+        // 显示加载状态
+        this.showLoadingInBubble();
     }
 
     hideAIBubble() {
