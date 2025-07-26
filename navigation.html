@@ -35,80 +35,72 @@
             height: 100%;
         }
 
-        /* AI问答气泡 - 按照图片设计优化 */
-        .ai-chat-bubble {
+        /* 问题卡片 - 顶部显示 */
+        .ai-question-card {
             position: fixed;
-            top: 40px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            max-width: 390px;
-            width: calc(100% - 24px);
-            background: rgba(255, 255, 255, 0.98);
+            max-width: 600px;
+            width: calc(100% - 40px);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(139, 195, 74, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 2px solid #8BC34A;
             z-index: 1000;
-            padding: 20px;
+            padding: 20px 24px;
             display: none;
             animation: slideDown 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
-        .ai-chat-bubble.show {
+        .ai-question-card.show {
             display: block;
         }
 
-        .ai-header {
+        .question-header {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 12px;
-            margin-bottom: 16px;
         }
 
         .ai-avatar {
-            width: 42px;
-            height: 42px;
-            background: transparent;
+            width: 48px;
+            height: 48px;
+            background: #8BC34A;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 18px;
+            font-size: 20px;
             flex-shrink: 0;
             box-shadow: 0 2px 8px rgba(139, 195, 74, 0.3);
         }
 
-        .ai-question-container {
-            flex: 1;
-            position: relative;
-        }
-
         .ai-question {
-            font-size: 17px;
+            font-size: 18px;
             font-weight: 600;
             color: #2E2E2E;
-            line-height: 1.5;
+            line-height: 1.4;
             margin: 0;
-            padding-right: 32px;
+            flex: 1;
         }
 
         .close-btn {
-            position: absolute;
-            top: -4px;
-            right: -8px;
             background: rgba(0, 0, 0, 0.1);
             border: none;
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            font-size: 16px;
+            font-size: 18px;
             color: #666;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
+            flex-shrink: 0;
         }
 
         .close-btn:hover {
@@ -117,11 +109,34 @@
             transform: scale(1.1);
         }
 
+        /* 选项卡片 - 下半部分显示 */
+        .ai-options-card {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 600px;
+            width: calc(100% - 40px);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            padding: 20px;
+            display: none;
+            animation: slideUp 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .ai-options-card.show {
+            display: block;
+        }
+
         /* 选项列表 - 按照图片的彩色卡片设计 */
         .options-container {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 12px;
         }
 
         .option-item {
@@ -236,6 +251,17 @@
             }
         }
 
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -259,13 +285,29 @@
 
         /* 响应式设计 */
         @media (max-width: 480px) {
-            .ai-chat-bubble {
+            .ai-question-card {
                 max-width: none;
                 width: calc(100% - 20px);
-                top: 40px;
+                top: 15px;
+                padding: 16px 20px;
             }
 
-            
+            .ai-options-card {
+                max-width: none;
+                width: calc(100% - 20px);
+                bottom: 40px;
+                padding: 16px;
+            }
+
+            .ai-question {
+                font-size: 16px;
+            }
+
+            .ai-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
         }
     </style>
 </head>
@@ -275,18 +317,19 @@
         <div id="map"></div>
     </div>
 
-    <!-- AI问答气泡 -->
-    <div class="ai-chat-bubble" id="ai-chat-bubble">
-        <div class="ai-header">
+    <!-- AI问题卡片 - 顶部 -->
+    <div class="ai-question-card" id="ai-question-card">
+        <div class="question-header">
             <div class="ai-avatar" id="ai-avatar"></div>
-            <div class="ai-question-container">
-                <div class="ai-question" id="ai-question">
-                    正在分析您的位置...
-                </div>
-                <button class="close-btn" onclick="hideAIBubble()">×</button>
+            <div class="ai-question" id="ai-question">
+                正在分析您的位置...
             </div>
+            <button class="close-btn" onclick="hideAIBubble()">×</button>
         </div>
-        
+    </div>
+
+    <!-- AI选项卡片 - 底部 -->
+    <div class="ai-options-card" id="ai-options-card">
         <div class="options-container" id="options-container">
             <div style="text-align: center; padding: 20px; color: #6b7280;">
                 <div style="font-size: 14px;">🤖 AI正在获取位置信息...</div>

@@ -487,15 +487,22 @@ class NavigationApp {
     }
 
     showAIBubble() {
-        const bubble = document.getElementById('ai-chat-bubble');
-        bubble.classList.add('show');
+        const questionCard = document.getElementById('ai-question-card');
+        const optionsCard = document.getElementById('ai-options-card');
+        
+        questionCard.classList.add('show');
+        optionsCard.classList.add('show');
 
         // 显示加载状态
         this.showLoadingInBubble();
     }
 
     hideAIBubble() {
-        document.getElementById('ai-chat-bubble').classList.remove('show');
+        const questionCard = document.getElementById('ai-question-card');
+        const optionsCard = document.getElementById('ai-options-card');
+        
+        questionCard.classList.remove('show');
+        optionsCard.classList.remove('show');
     }
 
     selectOption(option, action) {
@@ -515,7 +522,7 @@ class NavigationApp {
         // 创建或更新常驻指令信息区域
         this.createPersistentInstructionArea(selectedOption, nextAction);
 
-        // 隐藏AI气泡
+        // 隐藏AI卡片
         this.hideAIBubble();
 
         // 创建已完成按钮区域
